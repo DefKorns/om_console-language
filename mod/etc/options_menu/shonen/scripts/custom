@@ -1,3 +1,0 @@
-if [ "$sftype" = "hvcj" ]; then
-  mount_bind "$mountpoint/etc/options_menu/shonen/custom_languages/CHANGE_ME/strings.lng" "$mountpoint/usr/share/ui/hvc/resources/strings/jpn_ja/strings.lng"
-fi

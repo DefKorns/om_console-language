@@ -1,0 +1,13 @@
+LH_TITLE=Idioma de la consola
+LH_DOWNLOAD=Descargar más idiomas
+LH_REVERT=Volver al japonés
+LH_APPLYING=Aplicando idioma...
+LH_APPLIED=Idioma aplicado. Se verá al salir del menú.
+LH_REVERTING=Restaurando el japonés...
+LH_REVERTED=Japonés restaurado.
+LH_NOT_FOUND=Este idioma no está disponible en esta consola.
+LH_DOWNLOADING=Descargando idiomas...
+LH_DOWNLOADED=Descarga completada. Vuelve a abrir este menú para ver los nuevos idiomas.
+LH_PATCHES=Parches de traducción de juegos (IPS)
+LH_PATCHES_ON=Parches activados. Mantén ABAJO al iniciar un juego para jugarlo parcheado en RetroArch.
+LH_PATCHES_OFF=Parches desactivados.

@@ -1,0 +1,5 @@
+COMMAND_NAME=English
+COMMAND_TYPE=INTERNAL
+COMMAND_STR=sh %script_dir%/lang_hack.sh apply usa_en
+STATE_STR=sh %script_dir%/lang_hack.sh state usa_en
+PREVIEW_IMAGE=/etc/options_menu/language_hack/images/usa_en.png

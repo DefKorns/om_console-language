@@ -1,0 +1,5 @@
+COMMAND_NAME=Português
+COMMAND_TYPE=INTERNAL
+COMMAND_STR=sh %script_dir%/lang_hack.sh apply eur_pt
+STATE_STR=sh %script_dir%/lang_hack.sh state eur_pt
+PREVIEW_IMAGE=/etc/options_menu/language_hack/images/eur_pt.png

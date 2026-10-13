@@ -1,7 +1,0 @@
-COMMAND_NAME=Swedish
-COMMAND_TYPE=INTERNAL
-RESTART_UI=FALSE
-COMMAND_STR=sh /etc/options_menu/shonen/custom_languages/scripts/getSwe
-PREVIEW_IMAGE=/etc/options_menu/shonen/custom_languages/eur_swe.png
-PREVIEW_IMAGE_X=590
-PREVIEW_IMAGE_Y=248

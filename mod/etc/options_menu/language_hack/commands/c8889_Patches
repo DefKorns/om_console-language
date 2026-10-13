@@ -1,0 +1,4 @@
+COMMAND_NAME=LH_PATCHES
+COMMAND_TYPE=INTERNAL
+COMMAND_STR=sh %script_dir%/lang_hack.sh patches
+STATE_STR=sh %script_dir%/lang_hack.sh state patches

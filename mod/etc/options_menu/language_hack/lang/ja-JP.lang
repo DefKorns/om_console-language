@@ -1,0 +1,13 @@
+LH_TITLE=本体の言語
+LH_DOWNLOAD=言語を追加ダウンロード
+LH_REVERT=日本語に戻す
+LH_APPLYING=言語を適用しています...
+LH_APPLIED=言語を適用しました。メニューを閉じると反映されます。
+LH_REVERTING=日本語に戻しています...
+LH_REVERTED=日本語に戻しました。
+LH_NOT_FOUND=この言語は本体で利用できません。
+LH_DOWNLOADING=言語をダウンロードしています...
+LH_DOWNLOADED=ダウンロード完了。メニューを開き直すと新しい言語が表示されます。
+LH_PATCHES=ゲーム翻訳パッチ (IPS)
+LH_PATCHES_ON=パッチを有効にしました。ゲーム起動時に下を押し続けると、RetroArchでパッチ適用版を遊べます。
+LH_PATCHES_OFF=パッチを無効にしました。

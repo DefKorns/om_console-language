@@ -1,4 +1,33 @@
-transfer_default
-cfg_OM_Shonen_Language_Hack='y'
+#!/bin/sh
+# shellcheck disable=SC2154
+#
+#  Copyright (c) 2026 DefKorns (https://defkorns.github.io/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
 
+# leftovers from the CompCom Options Menu releases (RC4 and b135/b136)
+rm -f "$rootfs/etc/preinit.d/p8020_shonen_hack" "$rootfs/etc/preinit.d/p8024_zlanguage"
+rm -f "$rootfs/etc/options_menu/commands/c0090_Shonen" "$rootfs/etc/options_menu/commands/c0090_Languages"
+rm -f "$rootfs/etc/options_menu/scripts/om_languagemod" "$rootfs/etc/options_menu/scripts/om_languagemod.txt"
+rm -rf "$rootfs/etc/options_menu/shonen" "$rootfs/etc/options_menu/languages" "$rootfs/etc/options_menu/localization"
+for bin in nes snes; do
+  if [ -f "$rootfs/${bin}_backup" ]; then
+    cp -f "$rootfs/${bin}_backup" "$rootfs/bin/$bin"
+    rm -f "$rootfs/${bin}_backup"
+  fi
+done
+
+transfer_default
 return 1

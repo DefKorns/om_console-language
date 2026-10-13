@@ -1,13 +1,22 @@
-# OM_Shonen_Language-Hack
-**This modification is only for use with [CompCom's](https://github.com/CompCom) Options Menu.**
+# OM Language Hack
+**This addon requires [DefKorns' fork of the Options Menu](https://github.com/DefKorns/OptionsMenu/tree/modern-ui-ttf) (branch `modern-ui-ttf`).**
 
 ![English Translation](https://hakchiresources.com/wp-content/uploads/2018/09/shonen_hvcj.png)
 
-Based on [Advokaten's](https://github.com/advokaten) *Shonen Jump Hack* and using his Swedish and Norwegian translations, this addon enables all default languages from NESCE on Famicom Shonen Jump, plus custom Swedish and Norwegian. 
+Based on [Advokaten's](https://github.com/advokaten) *Shonen Jump Hack*, this addon enables the hidden languages on the Japanese systems (Famicom Shonen Jump, Famicom Mini and Super Famicom Mini) and downloads custom languages for every system, including the USA and EUR consoles.
 
-## What if I don’t own a Shonen Jump, will this work when dual-booting?
+*Game translation patches (IPS)* downloads translation and audio patches for the original games. Hold DOWN when starting a game to play it patched in RetroArch (KMFDManic's RetroArch 1.8.4 or 1.9.10 with the FCEUmm and SNES9x cores). Nothing in the game list is changed.
 
-Yes. This hmod will work with .hsqs, too.
+Each firmware keeps its own language, so multi-booting needs no `.hsqs`: hakchi switches firmware and the choice follows it.
+
+Open **Console Language** in the Options Menu, pick a language and leave the menu. *Download more languages* shows up when the console is online.
+
+## Building
+```sh
+git submodule update --init
+make
+make packs     # language and IPS packs for the download server
+```
 
 ## Credits
 * Advokaten (Original HMODS and Idea)

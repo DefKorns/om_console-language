@@ -1,7 +1,0 @@
-COMMAND_NAME=Spurdo
-COMMAND_TYPE=INTERNAL
-RESTART_UI=FALSE
-COMMAND_STR=sh /etc/options_menu/shonen/custom_languages/scripts/getCw
-PREVIEW_IMAGE=/etc/options_menu/shonen/custom_languages/cst_cw.png
-PREVIEW_IMAGE_X=590
-PREVIEW_IMAGE_Y=248

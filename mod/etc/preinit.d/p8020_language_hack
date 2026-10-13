@@ -1,0 +1,143 @@
+# shellcheck shell=sh disable=SC2154,SC2034,SC3043
+#  Copyright (c) 2026 DefKorns (https://defkorns.github.io/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Binds the language chosen for the booted firmware over jpn_ja (or over the
+# whole strings dir for custom packs) and overlays the IPS patches next to the
+# original roms, where RetroArch picks them up when a game is started holding DOWN.
+# lang_hack.sh and uninstall source it with lh_lib=1 to reuse the functions.
+
+# read straight from the rootfs layer: "/" is an overlayfs and can't be an upperdir
+lh_dir="$rootfs/etc/options_menu/language_hack"
+lh_assets="$lh_dir/assets"
+
+lh_init() {
+  local share="$mountpoint/usr/share"
+  lh_system="$sftype"
+  lh_pack="$sftype"
+  lh_patch_pack="$sftype"
+  lh_strings="$share/clover-ui/resources/strings"
+  lh_jpn="$lh_strings/jpn_ja/strings.json"
+  lh_roms="$squashfs/usr/share/games/nes/kachikachi"
+  case "$sftype" in
+  hvcj)
+    lh_system="shonen"
+    lh_pack="shonen"
+    lh_patch_pack="shonen"
+    lh_strings="$share/ui/hvc/resources/strings"
+    lh_jpn="$lh_strings/jpn_ja/strings.lng"
+    lh_roms="$squashfs/usr/share/games"
+    ;;
+  nes)
+    [ "$sfregion" = "jpn" ] && lh_system="hvc"
+    ;;
+  snes)
+    lh_strings="$share/ui/snes-$sfregion/resources/strings"
+    lh_roms="$squashfs/usr/share/games"
+    if [ "$sfregion" = "jpn" ]; then
+      lh_system="shvc"
+      lh_patch_pack="shvc"
+      lh_strings="$share/ui/shvc/resources/strings"
+      lh_jpn="$lh_strings/jpn_ja/strings.lng"
+    fi
+    ;;
+  esac
+  lh_code=""
+  [ -f "$lh_dir/active.$lh_system" ] && lh_code="$(cat "$lh_dir/active.$lh_system")"
+  lh_custom="$lh_dir/custom/$lh_code"
+  lh_ips_upper="$lh_dir/ips_overlay/$lh_system"
+}
+
+# Japanese firmwares ship the other languages hidden; hvc gets them from assets
+lh_builtin() {
+  case "$lh_system" in
+  shonen | shvc) echo "$lh_strings/$1/strings.lng" ;;
+  hvc) echo "$lh_assets/strings/$1/strings.json" ;;
+  *) return 1 ;;
+  esac
+}
+
+lh_bind() {
+  [ -e "$1" ] && [ -e "$2" ] && mount_bind "$1" "$2"
+}
+
+lh_unbind() {
+  grep -q " $1 " /proc/mounts && umount "$1" 2>/dev/null
+}
+
+lh_overlay() {
+  [ -d "$1" ] && [ -d "$2" ] && mount -t overlayfs -o "lowerdir=$2,upperdir=$1" overlayfs "$2"
+}
+
+lh_unoverlay() {
+  grep -q "^overlayfs $1 " /proc/mounts && umount "$1" 2>/dev/null
+}
+
+# one line per bind: "<source> <target>", from the active state
+lh_mounts() {
+  local f
+  [ -z "$lh_code" ] && return
+  if [ -f "$lh_custom/strings.lng" ]; then
+    echo "$lh_custom/strings.lng $lh_jpn"
+  elif [ -d "$lh_custom/strings" ]; then
+    if [ -d "$lh_custom/strings/jpn_ja" ] || [ "$lh_system" = "$sftype" ]; then
+      echo "$lh_custom/strings $lh_strings"
+      [ "$lh_system" = "shvc" ] && echo "$lh_assets/shvc/env_jpn.lua ${lh_strings%/strings}/scripts/env/env_jpn.lua" &&
+        echo "$lh_assets/shvc/defaultscene.scn ${lh_strings%/strings}/defaultscene.scn"
+    else
+      # packs without a jpn_ja slot: same slot b136 used
+      echo "$lh_custom/strings/eur_ru/${lh_jpn##*/} $lh_jpn"
+    fi
+  else
+    echo "$(lh_builtin "$lh_code") $lh_jpn"
+  fi
+  if [ "$lh_system" = "shonen" ]; then
+    for f in "$lh_assets"/sprites/*.png; do
+      echo "$f ${lh_strings%/strings}/sprites/${f##*/}"
+    done
+  fi
+}
+
+lh_mount_lang() {
+  local src
+  local dst
+  lh_mounts | while read -r src dst; do
+    lh_bind "$src" "$dst"
+  done
+  [ -n "$lh_code" ] && lh_overlay "$lh_assets/fonts" "$mountpoint/usr/share/fonts"
+}
+
+lh_umount_lang() {
+  local src
+  local dst
+  lh_mounts | while read -r src dst; do
+    lh_unbind "$dst"
+  done
+  [ -n "$lh_code" ] && lh_unoverlay "$mountpoint/usr/share/fonts"
+}
+
+lh_mount_patches() {
+  [ -f "$lh_dir/patches.$lh_system" ] && lh_overlay "$lh_ips_upper" "$lh_roms"
+}
+
+lh_umount_patches() {
+  [ -f "$lh_dir/patches.$lh_system" ] && lh_unoverlay "$lh_roms"
+}
+
+if [ -z "$lh_lib" ]; then
+  lh_init
+  lh_mount_lang
+  lh_mount_patches
+fi
