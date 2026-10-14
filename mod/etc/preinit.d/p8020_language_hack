@@ -103,6 +103,10 @@ lh_mounts() {
   else
     echo "$(lh_builtin "$lh_code") $lh_jpn"
   fi
+  # same targets font_remount's fontFix binds, which wins for fonts it provides
+  for f in "$lh_assets"/fonts/*.fnt; do
+    echo "$f ${lh_strings%/strings}/fonts/${f##*/}"
+  done
   if [ "$lh_system" = "shonen" ]; then
     for f in "$lh_assets"/sprites/*.png; do
       echo "$f ${lh_strings%/strings}/sprites/${f##*/}"
@@ -116,7 +120,6 @@ lh_mount_lang() {
   lh_mounts | while read -r src dst; do
     lh_bind "$src" "$dst"
   done
-  [ -n "$lh_code" ] && lh_overlay "$lh_assets/fonts" "$mountpoint/usr/share/fonts"
 }
 
 lh_umount_lang() {
@@ -125,7 +128,6 @@ lh_umount_lang() {
   lh_mounts | while read -r src dst; do
     lh_unbind "$dst"
   done
-  [ -n "$lh_code" ] && lh_unoverlay "$mountpoint/usr/share/fonts"
 }
 
 lh_mount_patches() {
