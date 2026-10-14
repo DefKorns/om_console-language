@@ -21,6 +21,24 @@ Each firmware keeps its own language, so multi-booting needs no `.hsqs`: hakchi 
 * hayabusakun: Captain Tsubasa Vol. II: Super Striker
   * pacnsacdave (title screen)
 * Alex W. Jackson, Neill Corlett and SoM2Freak: Final Fantasy III
+* KingMike: Saint Seiya: Ougon Densetsu
+* aishsha and Djinn: Saint Seiya: Ougon Densetsu Kanketsu Hen
+* Polinym: Dragon Quest
+  * Bregalad (alphanumeric password fix)
+* Boojum Snark: Ankoku Shinwa: Yamato Takeru Densetsu
+  * Proveaux (menu addendum)
+* pacnsacdave: Sakigake!! Otokojuku: Shippuu Ichigou Sei
+* The Stardust Crusaders: Hokuto no Ken
+  * Stevemartin and aishsha (translation)
+  * FlashPV (title screen and ending graphic)
+* RedComet (Twilight Translations): Dragon Ball Z: Kyoushuu! Saiyajin
+  * MukiMuki (Kamaitachii) (translation)
+* Jordiway73: The Legend of Zelda (Famicom Disk System)
+* AlanMidas: Metroid (Famicom Disk System)
+* Columbo: Link no Bouken (Famicom Disk System)
+  * masaru (title screen)
+* Captain Tsubasa: replaced with the official US release (Tecmo Cup Soccer Game, Tecmo)
+* Tenchi wo Kurau: replaced with the official US release (Destiny of an Emperor, Capcom)
 
 ### Thanks to
 * bslenul
