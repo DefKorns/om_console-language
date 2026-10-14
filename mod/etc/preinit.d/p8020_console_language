@@ -1,0 +1,145 @@
+# shellcheck shell=sh disable=SC2154,SC2034,SC3043
+#  Copyright (c) 2026 DefKorns (https://defkorns.github.io/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Binds the language chosen for the booted firmware over jpn_ja (or over the
+# whole strings dir for custom packs) and overlays the IPS patches next to the
+# original roms, where RetroArch picks them up when a game is started holding DOWN.
+# console_language.sh and uninstall source it with cl_lib=1 to reuse the functions.
+
+# read straight from the rootfs layer: "/" is an overlayfs and can't be an upperdir
+cl_dir="$rootfs/etc/options_menu/console_language"
+cl_assets="$cl_dir/assets"
+
+cl_init() {
+  local share="$mountpoint/usr/share"
+  cl_system="$sftype"
+  cl_pack="$sftype"
+  cl_patch_pack="$sftype"
+  cl_strings="$share/clover-ui/resources/strings"
+  cl_jpn="$cl_strings/jpn_ja/strings.json"
+  cl_roms="$squashfs/usr/share/games/nes/kachikachi"
+  case "$sftype" in
+  hvcj)
+    cl_system="shonen"
+    cl_pack="shonen"
+    cl_patch_pack="shonen"
+    cl_strings="$share/ui/hvc/resources/strings"
+    cl_jpn="$cl_strings/jpn_ja/strings.lng"
+    cl_roms="$squashfs/usr/share/games"
+    ;;
+  nes)
+    [ "$sfregion" = "jpn" ] && cl_system="hvc"
+    ;;
+  snes)
+    cl_strings="$share/ui/snes-$sfregion/resources/strings"
+    cl_roms="$squashfs/usr/share/games"
+    if [ "$sfregion" = "jpn" ]; then
+      cl_system="shvc"
+      cl_patch_pack="shvc"
+      cl_strings="$share/ui/shvc/resources/strings"
+      cl_jpn="$cl_strings/jpn_ja/strings.lng"
+    fi
+    ;;
+  esac
+  cl_code=""
+  [ -f "$cl_dir/active.$cl_system" ] && cl_code="$(cat "$cl_dir/active.$cl_system")"
+  cl_custom="$cl_dir/custom/$cl_code"
+  cl_ips_upper="$cl_dir/ips_overlay/$cl_system"
+}
+
+# Japanese firmwares ship the other languages hidden; hvc gets them from assets
+cl_builtin() {
+  case "$cl_system" in
+  shonen | shvc) echo "$cl_strings/$1/strings.lng" ;;
+  hvc) echo "$cl_assets/strings/$1/strings.json" ;;
+  *) return 1 ;;
+  esac
+}
+
+cl_bind() {
+  [ -e "$1" ] && [ -e "$2" ] && mount_bind "$1" "$2"
+}
+
+cl_unbind() {
+  grep -q " $1 " /proc/mounts && umount "$1" 2>/dev/null
+}
+
+cl_overlay() {
+  [ -d "$1" ] && [ -d "$2" ] && mount -t overlayfs -o "lowerdir=$2,upperdir=$1" overlayfs "$2"
+}
+
+cl_unoverlay() {
+  grep -q "^overlayfs $1 " /proc/mounts && umount "$1" 2>/dev/null
+}
+
+# one line per bind: "<source> <target>", from the active state
+cl_mounts() {
+  local f
+  [ -z "$cl_code" ] && return
+  if [ -f "$cl_custom/strings.lng" ]; then
+    echo "$cl_custom/strings.lng $cl_jpn"
+  elif [ -d "$cl_custom/strings" ]; then
+    if [ -d "$cl_custom/strings/jpn_ja" ] || [ "$cl_system" = "$sftype" ]; then
+      echo "$cl_custom/strings $cl_strings"
+      [ "$cl_system" = "shvc" ] && echo "$cl_assets/shvc/env_jpn.lua ${cl_strings%/strings}/scripts/env/env_jpn.lua" &&
+        echo "$cl_assets/shvc/defaultscene.scn ${cl_strings%/strings}/defaultscene.scn"
+    else
+      # packs without a jpn_ja slot: same slot b136 used
+      echo "$cl_custom/strings/eur_ru/${cl_jpn##*/} $cl_jpn"
+    fi
+  else
+    echo "$(cl_builtin "$cl_code") $cl_jpn"
+  fi
+  # same targets font_remount's fontFix binds, which wins for fonts it provides
+  for f in "$cl_assets"/fonts/*.fnt; do
+    echo "$f ${cl_strings%/strings}/fonts/${f##*/}"
+  done
+  if [ "$cl_system" = "shonen" ]; then
+    for f in "$cl_assets"/sprites/*.png; do
+      echo "$f ${cl_strings%/strings}/sprites/${f##*/}"
+    done
+  fi
+}
+
+cl_mount_lang() {
+  local src
+  local dst
+  cl_mounts | while read -r src dst; do
+    cl_bind "$src" "$dst"
+  done
+}
+
+cl_umount_lang() {
+  local src
+  local dst
+  cl_mounts | while read -r src dst; do
+    cl_unbind "$dst"
+  done
+}
+
+cl_mount_patches() {
+  [ -f "$cl_dir/patches.$cl_system" ] && cl_overlay "$cl_ips_upper" "$cl_roms"
+}
+
+cl_umount_patches() {
+  [ -f "$cl_dir/patches.$cl_system" ] && cl_unoverlay "$cl_roms"
+}
+
+if [ -z "$cl_lib" ]; then
+  cl_init
+  cl_mount_lang
+  cl_mount_patches
+fi

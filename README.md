@@ -1,4 +1,4 @@
-# OM Language Hack
+# OM Console Language
 **This addon requires [DefKorns' fork of the Options Menu](https://github.com/DefKorns/OptionsMenu/tree/modern-ui-ttf) (branch `modern-ui-ttf`).**
 
 ![English Translation](https://hakchiresources.com/wp-content/uploads/2018/09/shonen_hvcj.png)

@@ -17,15 +17,15 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-lh_preinit="$rootfs/etc/preinit.d/p8020_language_hack"
-if [ -f "$lh_preinit" ]; then
-  lh_lib=1
-  . "$lh_preinit"
-  lh_init
-  lh_umount_lang
-  lh_umount_patches
+cl_preinit="$rootfs/etc/preinit.d/p8020_console_language"
+if [ -f "$cl_preinit" ]; then
+  cl_lib=1
+  . "$cl_preinit"
+  cl_init
+  cl_umount_lang
+  cl_umount_patches
 fi
 
-rm -f "$lh_preinit"
+rm -f "$cl_preinit"
 rm -f "$rootfs/etc/options_menu/commands/c0079_ConsoleLanguage"
-rm -rf "$rootfs/etc/options_menu/language_hack"
+rm -rf "$rootfs/etc/options_menu/console_language"

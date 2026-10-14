@@ -1,0 +1,5 @@
+COMMAND_NAME=Português
+COMMAND_TYPE=INTERNAL
+COMMAND_STR=sh %script_dir%/console_language.sh apply eur_pt
+STATE_STR=sh %script_dir%/console_language.sh state eur_pt
+PREVIEW_IMAGE=/etc/options_menu/console_language/images/eur_pt.png

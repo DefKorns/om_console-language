@@ -1,0 +1,4 @@
+COMMAND_NAME=CL_REVERT
+COMMAND_TYPE=INTERNAL
+COMMAND_STR=sh %script_dir%/console_language.sh revert
+PREVIEW_IMAGE=/etc/options_menu/console_language/images/jpn_ja.png

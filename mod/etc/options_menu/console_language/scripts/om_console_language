@@ -17,15 +17,15 @@
 #
 . "$mountpoint/etc/options_menu/scripts/om_functions"
 
-lh_dir="$options_menu/language_hack"
+cl_dir="$options_menu/console_language"
 
 # the hidden languages only exist on the Japanese firmwares
 case "$system" in
 shonen | hvc | shvc) from="_" to="" ;;
 *) from="" to="_" ;;
 esac
-for cmd in "$lh_dir/commands/${from}"c000[0-7]_*; do
-  [ -f "$cmd" ] && mv "$cmd" "$lh_dir/commands/$to${cmd##*/"$from"}"
+for cmd in "$cl_dir/commands/${from}"c000[0-7]_*; do
+  [ -f "$cmd" ] && mv "$cmd" "$cl_dir/commands/$to${cmd##*/"$from"}"
 done
 
-usleep 50000 && "$options_menu/options" --commandPath "$lh_dir/commands/" --scriptPath "$lh_dir/scripts" --title "LH_TITLE" &
+usleep 50000 && "$options_menu/options" --commandPath "$cl_dir/commands/" --scriptPath "$cl_dir/scripts" --title "CL_TITLE" &

@@ -1,0 +1,5 @@
+COMMAND_NAME=English
+COMMAND_TYPE=INTERNAL
+COMMAND_STR=sh %script_dir%/console_language.sh apply usa_en
+STATE_STR=sh %script_dir%/console_language.sh state usa_en
+PREVIEW_IMAGE=/etc/options_menu/console_language/images/usa_en.png

@@ -1,5 +1,5 @@
-MOD_ID       := om-language-hack
-MOD_NAME     := Options Menu - Language Hack
+MOD_ID       := om_console-language
+MOD_NAME     := Options Menu - Console Language
 MOD_CATEGORY := Options Menu - Addons
 LANGUAGES    := language_pack
 PATCHES      := patches

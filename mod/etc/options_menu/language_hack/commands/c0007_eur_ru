@@ -1,5 +1,0 @@
-COMMAND_NAME=Русский
-COMMAND_TYPE=INTERNAL
-COMMAND_STR=sh %script_dir%/lang_hack.sh apply eur_ru
-STATE_STR=sh %script_dir%/lang_hack.sh state eur_ru
-PREVIEW_IMAGE=/etc/options_menu/language_hack/images/eur_ru.png

@@ -1,4 +1,0 @@
-COMMAND_NAME=LH_DOWNLOAD
-COMMAND_TYPE=INTERNAL
-ENABLE_IF=hasInternet
-COMMAND_STR=sh %script_dir%/lang_hack.sh get

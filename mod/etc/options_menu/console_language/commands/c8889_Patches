@@ -1,0 +1,4 @@
+COMMAND_NAME=CL_PATCHES
+COMMAND_TYPE=INTERNAL
+COMMAND_STR=sh %script_dir%/console_language.sh patches
+STATE_STR=sh %script_dir%/console_language.sh state patches

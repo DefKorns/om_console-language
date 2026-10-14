@@ -1,4 +1,0 @@
-COMMAND_NAME=LH_REVERT
-COMMAND_TYPE=INTERNAL
-COMMAND_STR=sh %script_dir%/lang_hack.sh revert
-PREVIEW_IMAGE=/etc/options_menu/language_hack/images/jpn_ja.png
