@@ -12,6 +12,16 @@ Each firmware keeps its own language, so multi-booting needs no `.hsqs`: hakchi 
 * Advokaten (Original HMODS and Idea)
 * DefKorns (Developer)
 
+### Translation patches
+* [BlackPaladin](https://github.com/BlackPaladin2022/Translation-Patches): Famicom Jump: Eiyuu Retsuden, Dragon Ball: Shenron no Nazo, Hokuto no Ken 3
+  * Pisalo (Dragon Ball translation)
+  * Zynk Oxhyde (Famicom Jump title screen, Hokuto no Ken 3 sprite fix)
+  * Cyneprepou4uk (Hokuto no Ken 3 ROM expansion)
+  * wave and Sensenic (Hokuto no Ken 3 Japanese-to-Spanish script)
+* hayabusakun: Captain Tsubasa Vol. II: Super Striker
+  * pacnsacdave (title screen)
+* Alex W. Jackson, Neill Corlett and SoM2Freak: Final Fantasy III
+
 ### Thanks to
 * bslenul
 * CompCom
