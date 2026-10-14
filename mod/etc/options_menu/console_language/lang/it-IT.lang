@@ -1,13 +1,10 @@
 CL_TITLE=Lingua della console
 CL_DOWNLOAD=Scarica altre lingue
 CL_REVERT=Torna al giapponese
-CL_APPLYING=Applicazione della lingua...
-CL_APPLIED=Lingua applicata. Sarà visibile all'uscita dal menu.
-CL_REVERTING=Ripristino del giapponese...
-CL_REVERTED=Giapponese ripristinato.
+CL_APPLYING_LINE1=Applicazione della Lingua
+CL_APPLYING_LINE2=Riavvio in Corso . . .
+CL_REVERTING_LINE1=Ripristino del Giapponese
+CL_REVERTING_LINE2=Riavvio in Corso . . .
 CL_NOT_FOUND=Questa lingua non è disponibile su questa console.
 CL_DOWNLOADING=Download delle lingue...
 CL_DOWNLOADED=Download completato. Riapri questo menu per vedere le nuove lingue.
-CL_PATCHES=Patch di traduzione dei giochi (IPS)
-CL_PATCHES_ON=Patch attive. Tieni premuto GIÙ all'avvio di un gioco per giocarlo con la patch in RetroArch.
-CL_PATCHES_OFF=Patch disattivate.

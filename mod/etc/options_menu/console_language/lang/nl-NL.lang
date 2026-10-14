@@ -1,13 +1,10 @@
 CL_TITLE=Consoletaal
 CL_DOWNLOAD=Meer talen downloaden
 CL_REVERT=Terug naar Japans
-CL_APPLYING=Taal wordt toegepast...
-CL_APPLIED=Taal toegepast. Zichtbaar zodra je het menu verlaat.
-CL_REVERTING=Japans wordt hersteld...
-CL_REVERTED=Japans hersteld.
+CL_APPLYING_LINE1=Taal wordt toegepast
+CL_APPLYING_LINE2=Opnieuw opstarten . . .
+CL_REVERTING_LINE1=Japans wordt hersteld
+CL_REVERTING_LINE2=Opnieuw opstarten . . .
 CL_NOT_FOUND=Deze taal is niet beschikbaar op deze console.
 CL_DOWNLOADING=Talen worden gedownload...
 CL_DOWNLOADED=Download voltooid. Open dit menu opnieuw om de nieuwe talen te zien.
-CL_PATCHES=Vertaalpatches voor games (IPS)
-CL_PATCHES_ON=Patches aan. Houd OMLAAG ingedrukt bij het starten van een game om hem gepatcht in RetroArch te spelen.
-CL_PATCHES_OFF=Patches uit.

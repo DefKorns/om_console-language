@@ -20,6 +20,7 @@
 # leftovers from the CompCom Options Menu releases (RC4 and b135/b136)
 rm -f "$rootfs/etc/preinit.d/p8020_shonen_hack" "$rootfs/etc/preinit.d/p8024_zlanguage"
 rm -f "$rootfs/etc/options_menu/commands/c0090_Shonen" "$rootfs/etc/options_menu/commands/c0090_Languages"
+rm -f "$rootfs/etc/options_menu/commands/c0079_ConsoleLanguage"
 rm -f "$rootfs/etc/options_menu/scripts/om_languagemod" "$rootfs/etc/options_menu/scripts/om_languagemod.txt"
 rm -rf "$rootfs/etc/options_menu/shonen" "$rootfs/etc/options_menu/languages" "$rootfs/etc/options_menu/localization"
 for bin in nes snes; do
@@ -27,6 +28,28 @@ for bin in nes snes; do
     cp -f "$rootfs/${bin}_backup" "$rootfs/bin/$bin"
     rm -f "$rootfs/${bin}_backup"
   fi
+done
+
+# om-language-hack state, copied before its uninstall wipes the folder;
+# patches state is kept for OM Game Translations
+cl_old="$rootfs/etc/options_menu/language_hack"
+if [ -d "$cl_old" ]; then
+  cl_new="$rootfs/etc/options_menu/console_language"
+  gt_new="$rootfs/etc/options_menu/game_translations"
+  mkdir -p "$cl_new/commands" "$gt_new"
+  for f in "$cl_old"/active.* "$cl_old"/custom "$cl_old"/images; do
+    [ -e "$f" ] && cp -rf "$f" "$cl_new/"
+  done
+  for f in "$cl_old"/commands/c01[0-9][0-9]_*; do
+    [ -f "$f" ] && sed -e "s#lang_hack.sh#console_language.sh#g" -e "s#/language_hack/#/console_language/#g" "$f" >"$cl_new/commands/${f##*/}"
+  done
+  for f in "$cl_old"/patches.* "$cl_old"/patches_ips; do
+    [ -e "$f" ] && cp -rf "$f" "$gt_new/"
+  done
+fi
+for cl_unfile in "$installpath/hmod/uninstall-om-language-hack"* \
+                 "$installpath/hmod/uninstall-OM_Shonen_Language-Hack"*; do
+  [ -f "$cl_unfile" ] && pack_uninstall "${cl_unfile##*/uninstall-}"
 done
 
 transfer_default

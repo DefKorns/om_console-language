@@ -82,7 +82,7 @@
 		"sys_resume_select_delete_dialog_cm_Yes": "Löschen",
 		"sys_resume_Empty": "Keine Daten",
 		"sys_resume_attention": "Lädst du einen Fortsetzungs-\npunkt, werden aktuelle Spiel-\nspeicherdaten überschrieben.",
-		"sys_resume_explanation": "Drückst du „RESET“, wird ein Fortsetzungspunkt erstellt.",
+		"sys_resume_explanation": "Drückst du »RESET«, wird ein Fortsetzungspunkt erstellt.",
 		"sys_sort_order_TitleName": "Name",
 		"sys_sort_order_Players": "2-Spieler-Spiele",
 		"sys_sort_order_RecentPlay": "Zuletzt gespielt",

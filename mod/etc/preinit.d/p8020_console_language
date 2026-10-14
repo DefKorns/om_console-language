@@ -15,8 +15,7 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 # Binds the language chosen for the booted firmware over jpn_ja (or over the
-# whole strings dir for custom packs) and overlays the IPS patches next to the
-# original roms, where RetroArch picks them up when a game is started holding DOWN.
+# whole strings dir for custom packs).
 # console_language.sh and uninstall source it with cl_lib=1 to reuse the functions.
 
 # read straight from the rootfs layer: "/" is an overlayfs and can't be an upperdir
@@ -27,28 +26,22 @@ cl_init() {
   local share="$mountpoint/usr/share"
   cl_system="$sftype"
   cl_pack="$sftype"
-  cl_patch_pack="$sftype"
   cl_strings="$share/clover-ui/resources/strings"
   cl_jpn="$cl_strings/jpn_ja/strings.json"
-  cl_roms="$squashfs/usr/share/games/nes/kachikachi"
   case "$sftype" in
   hvcj)
     cl_system="shonen"
     cl_pack="shonen"
-    cl_patch_pack="shonen"
     cl_strings="$share/ui/hvc/resources/strings"
     cl_jpn="$cl_strings/jpn_ja/strings.lng"
-    cl_roms="$squashfs/usr/share/games"
     ;;
   nes)
     [ "$sfregion" = "jpn" ] && cl_system="hvc"
     ;;
   snes)
     cl_strings="$share/ui/snes-$sfregion/resources/strings"
-    cl_roms="$squashfs/usr/share/games"
     if [ "$sfregion" = "jpn" ]; then
       cl_system="shvc"
-      cl_patch_pack="shvc"
       cl_strings="$share/ui/shvc/resources/strings"
       cl_jpn="$cl_strings/jpn_ja/strings.lng"
     fi
@@ -57,7 +50,6 @@ cl_init() {
   cl_code=""
   [ -f "$cl_dir/active.$cl_system" ] && cl_code="$(cat "$cl_dir/active.$cl_system")"
   cl_custom="$cl_dir/custom/$cl_code"
-  cl_ips_upper="$cl_dir/ips_overlay/$cl_system"
 }
 
 # Japanese firmwares ship the other languages hidden; hvc gets them from assets
@@ -75,14 +67,6 @@ cl_bind() {
 
 cl_unbind() {
   grep -q " $1 " /proc/mounts && umount "$1" 2>/dev/null
-}
-
-cl_overlay() {
-  [ -d "$1" ] && [ -d "$2" ] && mount -t overlayfs -o "lowerdir=$2,upperdir=$1" overlayfs "$2"
-}
-
-cl_unoverlay() {
-  grep -q "^overlayfs $1 " /proc/mounts && umount "$1" 2>/dev/null
 }
 
 # one line per bind: "<source> <target>", from the active state
@@ -103,9 +87,13 @@ cl_mounts() {
   else
     echo "$(cl_builtin "$cl_code") $cl_jpn"
   fi
-  # same targets font_remount's fontFix binds, which wins for fonts it provides
+  # the stock Japanese fonts lack accented glyphs and the UI dies on them (C8);
+  # same targets fontFix binds, which wins for fonts it provides
+  local fonts="${cl_strings%/strings}/fonts"
+  [ "$cl_system" = "hvc" ] && fonts="$fonts/hvc"
   for f in "$cl_assets"/fonts/*.fnt; do
-    echo "$f ${cl_strings%/strings}/fonts/${f##*/}"
+    [ "${f##*/}" = "debug.fnt" ] && [ "$cl_system" != "shonen" ] && continue
+    [ -f "$fonts/${f##*/}" ] && echo "$f $fonts/${f##*/}"
   done
   if [ "$cl_system" = "shonen" ]; then
     for f in "$cl_assets"/sprites/*.png; do
@@ -130,16 +118,7 @@ cl_umount_lang() {
   done
 }
 
-cl_mount_patches() {
-  [ -f "$cl_dir/patches.$cl_system" ] && cl_overlay "$cl_ips_upper" "$cl_roms"
-}
-
-cl_umount_patches() {
-  [ -f "$cl_dir/patches.$cl_system" ] && cl_unoverlay "$cl_roms"
-}
-
 if [ -z "$cl_lib" ]; then
   cl_init
   cl_mount_lang
-  cl_mount_patches
 fi

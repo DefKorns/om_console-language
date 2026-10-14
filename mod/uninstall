@@ -23,9 +23,11 @@ if [ -f "$cl_preinit" ]; then
   . "$cl_preinit"
   cl_init
   cl_umount_lang
-  cl_umount_patches
 fi
 
 rm -f "$cl_preinit"
-rm -f "$rootfs/etc/options_menu/commands/c0079_ConsoleLanguage"
+rm -f "$rootfs/etc/options_menu/language/commands/c9010_ConsoleLanguage"
+# the separator is shared with the other language addons
+ls "$rootfs/etc/options_menu/language/commands/"c90[1-9]* >/dev/null 2>&1 ||
+  rm -f "$rootfs/etc/options_menu/language/commands/c9000_separator"
 rm -rf "$rootfs/etc/options_menu/console_language"
