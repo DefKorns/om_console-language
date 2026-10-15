@@ -21,6 +21,6 @@ customlangs:
 clean:
 	rm -rf out/
 
-include hmod-build/hmod.mk
+include vendor/hmod-build/hmod.mk
 
 .PHONY: all compile packs customlangs clean
