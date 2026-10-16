@@ -36,7 +36,11 @@ cl_menu_entries() {
       "COMMAND_NAME=$(cat "$lang/name")" \
       "COMMAND_TYPE=INTERNAL" \
       "COMMAND_STR=sh %script_dir%/console_language.sh apply $code" >"$cmd"
-    [ -f "$cl_home/images/$code.png" ] && echo "PREVIEW_IMAGE=/etc/options_menu/console_language/images/$code.png" >>"$cmd"
+    if [ -f "$cl_home/images/$code.png" ]; then
+      echo "PREVIEW_IMAGE=/etc/options_menu/console_language/images/$code.png" >>"$cmd"
+    elif [ -f "$options_menu/images/preview_lang_${code#*_}.png" ]; then
+      echo "PREVIEW_IMAGE=/etc/options_menu/images/preview_lang_${code#*_}.png" >>"$cmd"
+    fi
     n=$((n + 1))
   done
 }

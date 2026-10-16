@@ -91,10 +91,13 @@ cl_mounts() {
   # same targets fontFix binds, which wins for fonts it provides
   local fonts="${cl_strings%/strings}/fonts"
   [ "$cl_system" = "hvc" ] && fonts="$fonts/hvc"
-  # the USA/EUR firmwares name all but copyright *.font
+  [ "$cl_system" = "nes" ] && fonts="$fonts/nes"
+  # a pack can bring its own fonts (Japanese); the USA/EUR firmwares name all but copyright *.font
+  local font_src="$cl_assets/fonts"
+  [ -d "$cl_custom/fonts" ] && font_src="$cl_custom/fonts"
   local target
-  for f in "$cl_assets"/fonts/*.fnt; do
-    [ "${f##*/}" = "debug.fnt" ] && [ "$cl_system" != "shonen" ] && continue
+  for f in "$font_src"/*.fnt; do
+    [ "${f##*/}" = "debug.fnt" ] && [ "$font_src" = "$cl_assets/fonts" ] && [ "$cl_system" != "shonen" ] && continue
     for target in "$fonts/${f##*/}" "$fonts/$(basename "$f" .fnt).font"; do
       [ -f "$target" ] && echo "$f $target" && break
     done
