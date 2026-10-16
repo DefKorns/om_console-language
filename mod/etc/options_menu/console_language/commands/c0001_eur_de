@@ -2,4 +2,4 @@ COMMAND_NAME=Deutsch
 COMMAND_TYPE=INTERNAL
 COMMAND_STR=sh %script_dir%/console_language.sh apply eur_de
 STATE_STR=sh %script_dir%/console_language.sh state eur_de
-PREVIEW_IMAGE=/etc/options_menu/console_language/images/eur_de.png
+PREVIEW_IMAGE=/etc/options_menu/images/preview_lang_de.png
