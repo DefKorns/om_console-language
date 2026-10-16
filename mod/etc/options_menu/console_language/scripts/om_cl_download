@@ -1,0 +1,47 @@
+#!/bin/sh
+# shellcheck disable=SC2154,SC3046,SC2086
+#  Copyright (C) 2026 DefKorns (https://defkorns.github.io/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Lists the catalog languages for this firmware, one entry each
+source $mountpoint/etc/options_menu/console_language/scripts/cl_vars
+
+dl_cmds="$cl_home/download/commands"
+dl_list="$cl_home/download/catalog.list"
+rm -rf "$dl_cmds" "$dl_list"
+mkdir -p "$dl_cmds"
+
+if "$om_scripts/downloader" "$dl_list" "$cl_url/$cl_pack.list" >/dev/null 2>&1; then
+  printf '%s\n' "COMMAND_NAME=CL_DOWNLOAD_ALL" "COMMAND_TYPE=INTERNAL" \
+    "COMMAND_STR=sh %script_dir%/console_language.sh installall" >"$dl_cmds/c0010_all"
+  : >"$dl_cmds/c0020_separator"
+  n=100
+  while read -r code name; do
+    [ -n "$code" ] || continue
+    cmd="$dl_cmds/c0${n}_$code"
+    printf '%s\n' \
+      "COMMAND_NAME=$name" \
+      "COMMAND_TYPE=INTERNAL" \
+      "COMMAND_STR=sh %script_dir%/console_language.sh install $code" >"$cmd"
+    [ -d "$cl_home/custom/$cl_pack/$code" ] && echo "CONFIRM_KEY=CL_REPLACE_CONFIRM" >>"$cmd"
+    [ -f "$cl_home/images/$code.png" ] && echo "PREVIEW_IMAGE=/etc/options_menu/console_language/images/$code.png" >>"$cmd"
+    n=$((n + 1))
+  done <"$dl_list"
+else
+  printf '%s\n' "COMMAND_NAME=CL_DOWNLOAD_FAILED" "COMMAND_TYPE=INTERNAL" \
+    "COMMAND_STR=sh %script_dir%/console_language.sh nonet" >"$dl_cmds/c0100_failed"
+fi
+
+usleep 50000 && "$options_menu/options" --commandPath "$dl_cmds/" --scriptPath "$cl_home/scripts" --title "CL_DOWNLOAD" &

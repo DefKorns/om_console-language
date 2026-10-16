@@ -1,5 +1,4 @@
 COMMAND_NAME=Español
 COMMAND_TYPE=INTERNAL
 COMMAND_STR=sh %script_dir%/console_language.sh apply eur_es
-STATE_STR=sh %script_dir%/console_language.sh state eur_es
 PREVIEW_IMAGE=/etc/options_menu/images/preview_lang_es.png

@@ -37,9 +37,11 @@ languages: stage
 # assets of the languages-v1 release the download entry reads: out/catalog/*.tar.gz
 packs: stage
 	mkdir -p out/catalog
+	rm -f out/catalog/*.list
 	for code in $(CODES); do \
 		for sys in $$(ls $(STAGE)/$$code/$(CL_PATH)/custom); do \
 			tar -czf out/catalog/$$sys-$$code.tar.gz -C $(STAGE)/$$code/$(CL_PATH) custom/$$sys/$$code; \
+			echo "$$code $$(cat $(LANGUAGES)/$$code/name)" >> out/catalog/$$sys.list; \
 		done; \
 	done
 	tar -czf out/catalog/hvc-strings.tar.gz -C $(STAGE)/hvc/$(CL_PATH) assets

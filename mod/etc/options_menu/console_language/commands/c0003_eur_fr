@@ -1,5 +1,4 @@
 COMMAND_NAME=Français
 COMMAND_TYPE=INTERNAL
 COMMAND_STR=sh %script_dir%/console_language.sh apply eur_fr
-STATE_STR=sh %script_dir%/console_language.sh state eur_fr
 PREVIEW_IMAGE=/etc/options_menu/images/preview_lang_fr.png

@@ -1,0 +1,132 @@
+# shellcheck shell=sh disable=SC2154,SC2034,SC3043
+#  Copyright (c) 2026 DefKorns (https://defkorns.github.io/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Console Language functions: hakchi sources b????_* in script_init, so the
+# addon's scripts get them from om_functions; boot runs them in p8020.
+# Self-contained: at boot the Options Menu may not be there yet.
+
+# read straight from the rootfs layer: "/" is an overlayfs and can't be an upperdir
+cl_dir="$rootfs/etc/options_menu/console_language"
+cl_assets="$cl_dir/assets"
+
+cl_init() {
+  local share="$mountpoint/usr/share"
+  cl_system="$sftype"
+  cl_pack="$sftype"
+  cl_strings="$share/clover-ui/resources/strings"
+  cl_jpn="$cl_strings/jpn_ja/strings.json"
+  case "$sftype" in
+  hvcj)
+    cl_system="shonen"
+    cl_pack="shonen"
+    cl_strings="$share/ui/hvc/resources/strings"
+    cl_jpn="$cl_strings/jpn_ja/strings.lng"
+    ;;
+  nes)
+    [ "$sfregion" = "jpn" ] && cl_system="hvc"
+    ;;
+  snes)
+    cl_strings="$share/ui/snes-$sfregion/resources/strings"
+    if [ "$sfregion" = "jpn" ]; then
+      cl_system="shvc"
+      cl_strings="$share/ui/shvc/resources/strings"
+      cl_jpn="$cl_strings/jpn_ja/strings.lng"
+    fi
+    ;;
+  esac
+  cl_code=""
+  [ -f "$cl_dir/active.$cl_system" ] && cl_code="$(cat "$cl_dir/active.$cl_system")"
+  cl_custom="$cl_dir/custom/$cl_pack/$cl_code"
+}
+
+# Japanese firmwares ship the other languages hidden; hvc gets them from assets
+cl_builtin() {
+  case "$cl_system" in
+  shonen | shvc) echo "$cl_strings/$1/strings.lng" ;;
+  hvc) echo "$cl_assets/strings/$1/strings.json" ;;
+  *) return 1 ;;
+  esac
+}
+
+cl_bind() {
+  [ -e "$1" ] && [ -e "$2" ] && mount_bind "$1" "$2"
+}
+
+cl_unbind() {
+  grep -q " $1 " /proc/mounts && umount "$1" 2>/dev/null
+}
+
+# one line per bind: "<source> <target>", from the active state
+cl_mounts() {
+  local f
+  [ -z "$cl_code" ] && return
+  if [ -f "$cl_custom/strings.lng" ]; then
+    echo "$cl_custom/strings.lng $cl_jpn"
+  elif [ -d "$cl_custom/strings" ]; then
+    if [ -d "$cl_custom/strings/jpn_ja" ] || [ "$cl_system" = "$sftype" ]; then
+      echo "$cl_custom/strings $cl_strings"
+      [ "$cl_system" = "shvc" ] && echo "$cl_assets/shvc/env_jpn.lua ${cl_strings%/strings}/scripts/env/env_jpn.lua" &&
+        echo "$cl_assets/shvc/defaultscene.scn ${cl_strings%/strings}/defaultscene.scn"
+    else
+      # packs without a jpn_ja slot: same slot b136 used
+      echo "$cl_custom/strings/eur_ru/${cl_jpn##*/} $cl_jpn"
+    fi
+  else
+    echo "$(cl_builtin "$cl_code") $cl_jpn"
+  fi
+  # the stock Japanese fonts lack accented glyphs and the UI dies on them (C8);
+  # same targets fontFix binds, which wins for fonts it provides
+  local fonts="${cl_strings%/strings}/fonts"
+  [ "$cl_system" = "hvc" ] && fonts="$fonts/hvc"
+  # the USA/EUR firmwares name all but copyright *.font
+  local target
+  for f in "$cl_assets"/fonts/*.fnt; do
+    [ "${f##*/}" = "debug.fnt" ] && [ "$cl_system" != "shonen" ] && continue
+    for target in "$fonts/${f##*/}" "$fonts/$(basename "$f" .fnt).font"; do
+      [ -f "$target" ] && echo "$f $target" && break
+    done
+  done
+  if [ "$cl_system" = "shonen" ]; then
+    for f in "$cl_assets"/sprites/*.png; do
+      echo "$f ${cl_strings%/strings}/sprites/${f##*/}"
+    done
+  fi
+}
+
+# languages re-downloaded while in use wait as <code>.new until nothing is bound
+cl_swap_staged() {
+  local staged
+  for staged in "$cl_dir"/custom/*/*.new; do
+    [ -d "$staged" ] || continue
+    rm -rf "${staged%.new}" && mv "$staged" "${staged%.new}"
+  done
+}
+
+cl_mount_lang() {
+  local src
+  local dst
+  cl_mounts | while read -r src dst; do
+    cl_bind "$src" "$dst"
+  done
+}
+
+cl_umount_lang() {
+  local src
+  local dst
+  cl_mounts | while read -r src dst; do
+    cl_unbind "$dst"
+  done
+}
