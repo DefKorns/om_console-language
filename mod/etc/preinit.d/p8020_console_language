@@ -49,7 +49,7 @@ cl_init() {
   esac
   cl_code=""
   [ -f "$cl_dir/active.$cl_system" ] && cl_code="$(cat "$cl_dir/active.$cl_system")"
-  cl_custom="$cl_dir/custom/$cl_code"
+  cl_custom="$cl_dir/custom/$cl_pack/$cl_code"
 }
 
 # Japanese firmwares ship the other languages hidden; hvc gets them from assets

@@ -8,3 +8,4 @@ CL_REVERTING_LINE2=A Reiniciar Agora . . .
 CL_NOT_FOUND=Este idioma não está disponível nesta consola.
 CL_DOWNLOADING=A transferir idiomas...
 CL_DOWNLOADED=Transferência concluída. Volta a abrir este menu para veres os novos idiomas.
+CL_DOWNLOADER_MISSING=As transferências precisam do Options Menu v2.0.0-beta2 ou mais recente.

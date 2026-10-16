@@ -8,3 +8,4 @@ CL_REVERTING_LINE2=再起動します . . .
 CL_NOT_FOUND=この言語は本体で利用できません。
 CL_DOWNLOADING=言語をダウンロードしています...
 CL_DOWNLOADED=ダウンロード完了。メニューを開き直すと新しい言語が表示されます。
+CL_DOWNLOADER_MISSING=ダウンロードにはOptions Menu v2.0.0-beta2以降が必要です。

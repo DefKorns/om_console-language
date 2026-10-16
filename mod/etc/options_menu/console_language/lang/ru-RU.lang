@@ -8,3 +8,4 @@ CL_REVERTING_LINE2=Перезагрузка . . .
 CL_NOT_FOUND=Этот язык недоступен на этой консоли.
 CL_DOWNLOADING=Загрузка языков...
 CL_DOWNLOADED=Загрузка завершена. Откройте меню снова, чтобы увидеть новые языки.
+CL_DOWNLOADER_MISSING=Для загрузки нужен Options Menu v2.0.0-beta2 или новее.

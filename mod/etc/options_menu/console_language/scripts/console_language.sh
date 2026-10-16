@@ -23,14 +23,14 @@ cl_init
 
 # writes go through "/" ($cl_home); the preinit reads the same files from $rootfs ($cl_dir)
 cl_home="$options_menu/console_language"
-cl_urls="http://hakchicloud.com/Hakchi_Themes/options_menu http://classicmods.net/Hakchi_Themes/options_menu"
+cl_url="https://github.com/DefKorns/om_console-language/releases/download/languages-v1"
 
-# code:native_name, "_" for spaces; packs are built from language_pack/<pack>/<code>
+# languages-v1 has <pack>-<code>.tar.gz for each, built from language_pack/<code>/<pack>
 cl_catalog() {
   case "$cl_pack" in
-  shonen) echo "as_id:Bahasa_Indonesia cst_cw:Spurdo eur_gr:Ελληνικά eur_nor:Norsk eur_swe:Svenska" ;;
-  nes) echo "eur_swe:Svenska" ;;
-  snes) echo "eur_gr:Ελληνικά eur_nor:Norsk eur_swe:Svenska por_br:Português_(Brasil)" ;;
+  shonen) echo "as_id cst_cw eur_gr eur_nor eur_swe" ;;
+  nes) echo "eur_swe" ;;
+  snes) echo "eur_gr eur_nor eur_swe por_br" ;;
   esac
 }
 
@@ -43,13 +43,17 @@ cl_reboot() {
 
 cl_available() {
   local builtin
-  if [ -f "$cl_dir/custom/$1/strings.lng" ] || [ -d "$cl_dir/custom/$1/strings" ]; then
+  if [ -f "$cl_dir/custom/$cl_pack/$1/strings.lng" ] || [ -d "$cl_dir/custom/$cl_pack/$1/strings" ]; then
     return 0
   fi
   builtin="$(cl_builtin "$1")" && [ -f "$builtin" ]
 }
 
 cl_apply() {
+  # the Famicom's other languages are downloaded on first use
+  if ! cl_available "$1" && [ "$cl_system" = "hvc" ] && [ "$1" != "usa_en" ]; then
+    cl_fetch hvc-strings.tar.gz "$cl_home" || exit 1
+  fi
   if ! cl_available "$1"; then
     translate CL_NOT_FOUND
     exit 1
@@ -72,39 +76,27 @@ cl_revert() {
 }
 
 cl_fetch() {
-  local url
-  local pkg
-  pkg="/tmp/cl_$(basename "$1")"
-  for url in $cl_urls; do
-    if wget -q -O "$pkg" "$url/$1" && tar -xzf "$pkg" -C "$2"; then
-      rm -f "$pkg"
-      return 0
-    fi
-  done
+  local pkg="/tmp/cl_$1"
+  local rc
+  if [ ! -x "$om_scripts/downloader" ]; then
+    translate CL_DOWNLOADER_MISSING
+    return 1
+  fi
+  omDownload "$pkg" "$cl_url/$1" || {
+    rm -f "$pkg"
+    return 1
+  }
+  tar -xzf "$pkg" -C "$2"
+  rc=$?
   rm -f "$pkg"
-  return 1
+  return "$rc"
 }
 
 cl_get() {
-  local entry
   local code
-  local cmd
-  local n=100
   translate CL_DOWNLOADING
-  for entry in $(cl_catalog); do
-    code="${entry%%:*}"
-    cl_fetch "customlangs/$cl_pack-$code.tar.gz" "$cl_home" || {
-      netChecker
-      exit 1
-    }
-    cmd="$cl_home/commands/c0${n}_$code"
-    printf '%s\n' \
-      "COMMAND_NAME=$(echo "${entry#*:}" | tr '_' ' ')" \
-      "COMMAND_TYPE=INTERNAL" \
-      "COMMAND_STR=sh %script_dir%/console_language.sh apply $code" \
-      "STATE_STR=sh %script_dir%/console_language.sh state $code" >"$cmd"
-    [ -f "$cl_home/images/$code.png" ] && echo "PREVIEW_IMAGE=/etc/options_menu/console_language/images/$code.png" >>"$cmd"
-    n=$((n + 1))
+  for code in $(cl_catalog); do
+    cl_fetch "$cl_pack-$code.tar.gz" "$cl_home" || exit 1
   done
   translate CL_DOWNLOADED
 }

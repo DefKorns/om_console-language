@@ -8,3 +8,4 @@ CL_REVERTING_LINE2=Rebooting Now . . .
 CL_NOT_FOUND=This language isn't available on this console.
 CL_DOWNLOADING=Downloading languages...
 CL_DOWNLOADED=Download complete. Reopen this menu to see the new languages.
+CL_DOWNLOADER_MISSING=Downloads need Options Menu v2.0.0-beta2 or newer.

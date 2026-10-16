@@ -52,5 +52,34 @@ for cl_unfile in "$installpath/hmod/uninstall-om-language-hack"* \
   [ -f "$cl_unfile" ] && pack_uninstall "${cl_unfile##*/uninstall-}"
 done
 
+# custom/<code> to custom/<system>/<code>: the files' layout tells which firmware downloaded it
+cl_custom="$rootfs/etc/options_menu/console_language/custom"
+for cl_lang in "$cl_custom"/*; do
+  cl_code="${cl_lang##*/}"
+  case "$cl_code" in nes | shonen | snes) continue ;; esac
+  if [ -f "$cl_lang/strings.lng" ]; then
+    cl_sys=shonen
+  elif ls "$cl_lang"/strings/*/strings.json >/dev/null 2>&1; then
+    cl_sys=nes
+  elif ls "$cl_lang"/strings/*/strings.lng >/dev/null 2>&1; then
+    cl_sys=snes
+  else
+    continue
+  fi
+  [ -e "$cl_custom/$cl_sys/$cl_code" ] && continue
+  mkdir -p "$cl_custom/$cl_sys"
+  mv "$cl_lang" "$cl_custom/$cl_sys/$cl_code"
+  case "$cl_code" in
+  as_id) cl_name="Bahasa Indonesia" ;;
+  cst_cw) cl_name="Spurdo" ;;
+  eur_gr) cl_name="Ellinika" ;;
+  eur_nor) cl_name="Norsk" ;;
+  eur_swe) cl_name="Svenska" ;;
+  por_br) cl_name="Português (Brasil)" ;;
+  *) cl_name="$cl_code" ;;
+  esac
+  echo "$cl_name" >"$cl_custom/$cl_sys/$cl_code/name"
+done
+
 transfer_default
 return 1

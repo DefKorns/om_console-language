@@ -8,3 +8,4 @@ CL_REVERTING_LINE2=Opnieuw opstarten . . .
 CL_NOT_FOUND=Deze taal is niet beschikbaar op deze console.
 CL_DOWNLOADING=Talen worden gedownload...
 CL_DOWNLOADED=Download voltooid. Open dit menu opnieuw om de nieuwe talen te zien.
+CL_DOWNLOADER_MISSING=Downloads vereisen Options Menu v2.0.0-beta2 of nieuwer.

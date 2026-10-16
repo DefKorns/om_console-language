@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=SC2154,SC1091
+# shellcheck disable=SC2154,SC1091,SC2034
 #  Copyright (c) 2026 DefKorns (https://defkorns.github.io/LICENSE)
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -16,6 +16,9 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 . "$mountpoint/etc/options_menu/scripts/om_functions"
+cl_lib=1
+. "$preinitpath/p8020_console_language"
+cl_init
 
 cl_dir="$options_menu/console_language"
 
@@ -26,6 +29,21 @@ shonen | hvc | shvc) from="_" to="" ;;
 esac
 for cmd in "$cl_dir/commands/${from}"c000[0-7]_*; do
   [ -f "$cmd" ] && mv "$cmd" "$cl_dir/commands/$to${cmd##*/"$from"}"
+done
+
+# one entry per language installed for this firmware, by the download entry or a language hmod
+rm -f "$cl_dir/commands/"c01[0-9][0-9]_*
+n=100
+for lang in "$cl_dir/custom/$cl_pack"/*; do
+  [ -f "$lang/name" ] || continue
+  code="${lang##*/}"
+  printf '%s\n' \
+    "COMMAND_NAME=$(cat "$lang/name")" \
+    "COMMAND_TYPE=INTERNAL" \
+    "COMMAND_STR=sh %script_dir%/console_language.sh apply $code" \
+    "STATE_STR=sh %script_dir%/console_language.sh state $code" >"$cl_dir/commands/c0${n}_$code"
+  [ -f "$cl_dir/images/$code.png" ] && echo "PREVIEW_IMAGE=/etc/options_menu/console_language/images/$code.png" >>"$cl_dir/commands/c0${n}_$code"
+  n=$((n + 1))
 done
 
 usleep 50000 && "$options_menu/options" --commandPath "$cl_dir/commands/" --scriptPath "$cl_dir/scripts" --title "CL_TITLE" &
