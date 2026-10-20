@@ -17,14 +17,15 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-cl_functions="$rootfs/etc/preinit.d/b8020_console_language"
+cl_functions="$rootfs/etc/options_menu/console_language/scripts/cl_functions"
 if [ -f "$cl_functions" ]; then
   source "$cl_functions"
   cl_init
   cl_umount_lang
+  cl_umount_romaji
 fi
 
-rm -f "$cl_functions" "$rootfs/etc/preinit.d/p8020_console_language"
+rm -f "$rootfs/etc/preinit.d/b8020_console_language" "$rootfs/etc/preinit.d/p8020_console_language"
 rm -f "$rootfs/etc/options_menu/language/commands/c9010_ConsoleLanguage"
 # the separator is shared with the other language addons
 ls "$rootfs/etc/options_menu/language/commands/"c90[1-9]* >/dev/null 2>&1 ||

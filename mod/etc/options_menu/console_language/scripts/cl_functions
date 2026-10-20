@@ -14,9 +14,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-# Console Language functions: hakchi sources b????_* in script_init, so the
-# addon's scripts get them from om_functions; boot runs them in p8020.
-# Self-contained: at boot the Options Menu may not be there yet.
+# Console Language functions, sourced by the menu scripts (cl_vars) and by the boot
+# script while a language is applied. Self-contained: at boot the Options Menu may not be there yet.
 
 # read straight from the rootfs layer: "/" is an overlayfs and can't be an upperdir
 cl_dir="$rootfs/etc/options_menu/console_language"
@@ -50,6 +49,24 @@ cl_init() {
   cl_code=""
   [ -f "$cl_dir/active.$cl_system" ] && cl_code="$(cat "$cl_dir/active.$cl_system")"
   cl_custom="$cl_dir/custom/$cl_pack/$cl_code"
+}
+
+# the language code the Options Menu names its flags and previews by
+cl_flag_lang() {
+  case "$1" in
+  eur_swe) echo sv ;;
+  eur_nor) echo no ;;
+  eur_gr) echo el ;;
+  por_br) echo pt_br ;;
+  *) echo "${1#*_}" ;;
+  esac
+}
+
+# the Japanese firmwares already have "Revert to Japanese"
+cl_skip_code() {
+  [ "$1" = "jpn_ja" ] || return 1
+  case "$cl_system" in shonen | hvc | shvc) return 0 ;; esac
+  return 1
 }
 
 # Japanese firmwares ship the other languages hidden; hvc gets them from assets
@@ -132,4 +149,31 @@ cl_umount_lang() {
   cl_mounts | while read -r src dst; do
     cl_unbind "$dst"
   done
+}
+
+# Famicom titles in rōmaji: the desktop files go over the games folder as an overlay
+cl_games() {
+  local storage first
+  storage="$(findGameStorage)"
+  if [ -n "$storage" ]; then
+    first="$(find "$storage" -maxdepth 2 -type d -name 'CLV-P*' 2>/dev/null | head -n 1)"
+    [ -n "$first" ] && dirname "$first" && return 0
+  fi
+  echo "$mountpoint$gamepath"
+}
+
+cl_romaji_on() {
+  [ -f "$cl_dir/romaji.$cl_system" ]
+}
+
+cl_mount_romaji() {
+  local games
+  [ -n "$cl_code" ] && cl_romaji_on && [ -d "$cl_assets/desktop/$cl_system" ] || return 0
+  games="$(cl_games)" && [ -n "$games" ] || return 0
+  mount -t overlayfs -o lowerdir="$games",upperdir="$cl_assets/desktop/$cl_system" overlayfs "$games"
+}
+
+cl_umount_romaji() {
+  local games
+  games="$(cl_games)" && [ -n "$games" ] && cl_unbind "$games"
 }

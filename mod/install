@@ -52,6 +52,13 @@ for cl_unfile in "$installpath/hmod/uninstall-om-language-hack"* \
   [ -f "$cl_unfile" ] && pack_uninstall "${cl_unfile##*/uninstall-}"
 done
 
+# the boot script lives in the addon folder and is copied over only while a language is applied
+rm -f "$rootfs/etc/preinit.d/b8020_console_language" "$rootfs/etc/preinit.d/p8020_console_language"
+
+# the title font comes from Font Remount now
+rm -f "$rootfs/etc/options_menu/console_language/assets/fonts/title.fnt" "$rootfs/etc/options_menu/console_language/assets/desktop"/*/title.fnt
+rm -rf "$rootfs/etc/options_menu/console_language/gamefont"
+
 # custom/<code> to custom/<system>/<code>: the files' layout tells which firmware downloaded it
 cl_custom="$rootfs/etc/options_menu/console_language/custom"
 for cl_lang in "$cl_custom"/*; do
@@ -82,4 +89,8 @@ for cl_lang in "$cl_custom"/*; do
 done
 
 transfer_default
+
+if ls "$rootfs/etc/options_menu/console_language"/active.* >/dev/null 2>&1; then
+  cp -f "$rootfs/etc/options_menu/console_language/preinit/p8020_console_language" "$rootfs/etc/preinit.d/p8020_console_language"
+fi
 return 1

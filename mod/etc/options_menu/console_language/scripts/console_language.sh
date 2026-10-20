@@ -15,14 +15,37 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-# Usage: console_language.sh apply <code> | revert | install <code> | installall | nonet
+# Usage: console_language.sh apply <code> | revert | romaji | romaji-state | romaji-available | install <code> | installall | nonet
 source $mountpoint/etc/options_menu/console_language/scripts/cl_vars
 
 # the binds go in at boot, ahead of fontFix and copyleft
+# the boot script only exists while a language is applied on some firmware
+cl_sync_preinit() {
+  local dest="$mountpoint/etc/preinit.d/p8020_console_language"
+  if ls "$cl_home"/active.* >/dev/null 2>&1; then
+    cp -f "$cl_home/preinit/p8020_console_language" "$dest"
+  else
+    rm -f "$dest"
+  fi
+}
+
+cl_splash() {
+  "$om_scripts/gen_splash" /tmp/om_splash.png "$@" && decodepng /tmp/om_splash.png >/dev/fb0
+}
+
+# the menu stays paused behind the splash until the console reboots
 cl_reboot() {
-  "$om_scripts/gen_splash" /tmp/om_splash.png "$1_LINE1" "$1_LINE2" && decodepng /tmp/om_splash.png >/dev/fb0
+  cl_splash "$1_LINE1" "$1_LINE2"
   sleep 1
-  hakchi reboot
+  hakchi reboot >/dev/null 2>&1
+  sleep 30
+}
+
+cl_fail() {
+  cl_splash "$1"
+  sleep 3
+  sh "$om_scripts/ResumeUI.sh"
+  exit 1
 }
 
 cl_available() {
@@ -36,22 +59,37 @@ cl_available() {
 cl_apply() {
   # the Famicom's other languages are downloaded on first use
   if ! cl_available "$1" && [ "$cl_system" = "hvc" ] && [ "$1" != "usa_en" ]; then
-    cl_fetch hvc-strings.tar.gz "$cl_home" || exit 1
+    cl_splash CL_DOWNLOADING
+    cl_fetch hvc-strings.tar.gz "$cl_home" || cl_fail CL_DOWNLOAD_FAILED
   fi
-  if ! cl_available "$1"; then
-    translate CL_NOT_FOUND
-    exit 1
-  fi
+  cl_available "$1" || cl_fail CL_NOT_FOUND
   echo "$1" >"$cl_home/active.$cl_system"
+  cl_sync_preinit
   cl_reboot CL_APPLYING
 }
 
 cl_revert() {
-  rm -f "$cl_home/active.$cl_system"
+  rm -f "$cl_home/active.$cl_system" "$cl_home/romaji.$cl_system"
+  cl_sync_preinit
   case "$cl_system" in
   shonen | hvc | shvc) cl_reboot CL_REVERTING ;;
   *) cl_reboot CL_RESTORING ;;
   esac
+}
+
+cl_romaji() {
+  [ -f "$cl_home/active.$cl_system" ] || cl_fail CL_ROMAJI_NEEDS_LANGUAGE
+  if [ -f "$cl_home/romaji.$cl_system" ]; then
+    rm -f "$cl_home/romaji.$cl_system"
+    cl_reboot CL_ROMAJI_OFF
+  else
+    : >"$cl_home/romaji.$cl_system"
+    cl_reboot CL_ROMAJI_ON
+  fi
+}
+
+cl_romaji_state() {
+  [ -f "$cl_home/romaji.$cl_system" ] && echo 1 || echo 0
 }
 
 cl_fetch() {
@@ -93,7 +131,7 @@ cl_install() {
 cl_install_all() {
   local code name missing=0
   while read -r code name; do
-    { [ -z "$code" ] || [ -d "$cl_home/custom/$cl_pack/$code" ]; } && continue
+    { [ -z "$code" ] || cl_skip_code "$code" || [ -d "$cl_home/custom/$cl_pack/$code" ]; } && continue
     missing=1
     cl_fetch "$cl_pack-$code.tar.gz" "$cl_home" || exit 1
   done <"$cl_home/download/catalog.list"
@@ -108,6 +146,9 @@ cl_install_all() {
 case "$1" in
 apply) cl_apply "$2" ;;
 revert) cl_revert ;;
+romaji) cl_romaji ;;
+romaji-state) cl_romaji_state ;;
+romaji-available) [ "$sfregion" = "jpn" ] && [ -f "$cl_home/active.$cl_system" ] ;;
 install) cl_install "$2" ;;
 installall) cl_install_all ;;
 nonet) netChecker ;;

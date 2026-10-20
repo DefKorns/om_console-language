@@ -17,6 +17,7 @@
 #
 # shellcheck source=/dev/null
 source $mountpoint/etc/options_menu/scripts/om_functions
+source $mountpoint/etc/options_menu/console_language/scripts/cl_functions
 cl_init
 
 # writes go through "/" ($cl_home); the preinit reads the same files from $rootfs ($cl_dir)
@@ -26,20 +27,29 @@ cl_url="https://github.com/DefKorns/om_console-language/releases/download/langua
 
 # one entry per language installed for this firmware, by the download entry or a language hmod
 cl_menu_entries() {
-  local lang code cmd n=100
+  local lang code lang_code cmd n=100
   rm -f "$cl_cmds/"c01[0-9][0-9]_*
   for lang in "$cl_home/custom/$cl_pack"/*; do
     [ -f "$lang/name" ] || continue
     code="${lang##*/}"
+    cl_skip_code "$code" && continue
     cmd="$cl_cmds/c0${n}_$code"
     printf '%s\n' \
       "COMMAND_NAME=$(cat "$lang/name")" \
-      "COMMAND_TYPE=INTERNAL" \
+      "COMMAND_TYPE=EXTERNAL" "RESTART_UI=FALSE" \
       "COMMAND_STR=sh %script_dir%/console_language.sh apply $code" >"$cmd"
-    if [ -f "$cl_home/images/$code.png" ]; then
+    lang_code="$(cl_flag_lang "$code")"
+    if [ -f "$cl_home/images/preview_lang_$lang_code.png" ]; then
+      echo "PREVIEW_IMAGE=/etc/options_menu/console_language/images/preview_lang_$lang_code.png" >>"$cmd"
+    elif [ -f "$cl_home/images/$code.png" ]; then
       echo "PREVIEW_IMAGE=/etc/options_menu/console_language/images/$code.png" >>"$cmd"
-    elif [ -f "$options_menu/images/preview_lang_${code#*_}.png" ]; then
-      echo "PREVIEW_IMAGE=/etc/options_menu/images/preview_lang_${code#*_}.png" >>"$cmd"
+    elif [ -f "$options_menu/images/preview_lang_$lang_code.png" ]; then
+      echo "PREVIEW_IMAGE=/etc/options_menu/images/preview_lang_$lang_code.png" >>"$cmd"
+    fi
+    if [ -f "$cl_home/images/flag_${lang_code}_small.png" ]; then
+      echo "ROW_ICON=/etc/options_menu/console_language/images/flag_${lang_code}_small.png" >>"$cmd"
+    elif [ -f "$options_menu/images/flag_${lang_code}_small.png" ]; then
+      echo "ROW_ICON=/etc/options_menu/images/flag_${lang_code}_small.png" >>"$cmd"
     fi
     n=$((n + 1))
   done
