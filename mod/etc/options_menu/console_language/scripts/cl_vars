@@ -23,7 +23,7 @@ clInit
 # writes go through "/" ($cl_home); the preinit reads the same files from $rootfs ($cl_dir)
 cl_home="$options_menu/console_language"
 cl_cmds="$cl_home/commands"
-cl_url="https://github.com/DefKorns/om_console-language/releases/download/languages-v1"
+cl_url="https://github.com/DefKorns/om_console-language-packs/releases/download/languages-v1"
 
 # one entry per language installed for this firmware, by the download entry or a language hmod
 clMenuEntries() {

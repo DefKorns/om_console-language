@@ -5,7 +5,7 @@
 
 Based on [Advokaten's](https://github.com/advokaten) *Shonen Jump Hack*, this addon enables the hidden languages on the Japanese systems (Famicom Shonen Jump, Famicom Mini and Super Famicom Mini) and downloads custom languages for every system, including the USA and EUR consoles.
 
-English is built in. The other languages come either as separate hmods (`om_console-language_<code>`, plus `om_console-language_hvc` for the Famicom Mini's languages), installed with hakchi like any other mod, or from the menu's *Download more languages*, which fetches the same files from this repository's [languages-v1](https://github.com/DefKorns/om_console-language/releases/tag/languages-v1) release. The Famicom Mini downloads its languages the first time one is picked.
+English is built in. The other languages come either as separate hmods from that repository (`om_console-language_<system>_<code>`, one per console type, plus `om_console-language_hvc` for the Famicom Mini's languages; also in the hakchi-repo *Language Packs* tab), installed with hakchi like any other mod, or from the menu's *Download more languages*, which fetches the same files from the [languages-v1](https://github.com/DefKorns/om_console-language-packs/releases/tag/languages-v1) release of [om_console-language-packs](https://github.com/DefKorns/om_console-language-packs). The Famicom Mini downloads its languages the first time one is picked.
 
 The game titles on the home screen use the extended `title.fnt` of **Font Remount**, so install it with this addon to see accented letters and the Rōmaji titles.
 
@@ -19,8 +19,9 @@ On the Japanese systems, **Rōmaji titles** shows the games' names in rōmaji in
 ```sh
 git submodule update --init
 make
-make packs     # out/catalog/*.tar.gz, the assets of the languages-v1 release
+make packs     # out/catalog/*.tar.gz
 ```
+The language hmods and the catalog are published in [om_console-language-packs](https://github.com/DefKorns/om_console-language-packs): `gh release upload languages-v1 out/catalog/* --clobber -R DefKorns/om_console-language-packs` for the catalog, and a `v*` release there for the `out/om_console-language_*_*.hmod` files.
 
 ## Credits
 * Advokaten (Original HMODS and Idea)
