@@ -4,4 +4,4 @@
 [submodule "vendor/OptionsMenu"]
 	path = vendor/OptionsMenu
 	url = https://github.com/DefKorns/OptionsMenu
-	branch = modern-ui-ttf
+	branch = master
