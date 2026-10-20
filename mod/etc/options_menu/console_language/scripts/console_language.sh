@@ -53,11 +53,6 @@ clAvailable() {
 }
 
 clApply() {
-  # the Famicom's other languages are downloaded on first use
-  if ! clAvailable "$1" && [ "$cl_system" = "hvc" ] && [ "$1" != "usa_en" ]; then
-    clSplash CL_DOWNLOADING
-    clFetch hvc-strings.tar.gz "$cl_home" || clFail CL_DOWNLOAD_FAILED
-  fi
   clAvailable "$1" || clFail CL_NOT_FOUND
   echo "$1" >"$cl_home/active.$cl_system"
   clSyncPreinit
