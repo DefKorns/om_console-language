@@ -16,29 +16,37 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+del() {
+  rm -rf "$@"
+}
+
+om_path="$rootfs/etc/options_menu"
+cl_path="$om_path/console_language"
+cl_cmds="$cl_path/commands"
+lang_cmds="$om_path/language/commands"
+pre_initd="$rootfs/etc/preinit.d"
+p_file="$pre_initd/p8020_console_language"
 
 # leftovers from the CompCom Options Menu releases (RC4 and b135/b136)
-rm -f "$rootfs/etc/preinit.d/p8020_shonen_hack" "$rootfs/etc/preinit.d/p8024_zlanguage"
-rm -f "$rootfs/etc/options_menu/commands/c0090_Shonen" "$rootfs/etc/options_menu/commands/c0090_Languages"
-rm -f "$rootfs/etc/options_menu/commands/c0079_ConsoleLanguage"
-rm -f "$rootfs/etc/options_menu/scripts/om_languagemod" "$rootfs/etc/options_menu/scripts/om_languagemod.txt"
-rm -rf "$rootfs/etc/options_menu/shonen" "$rootfs/etc/options_menu/languages" "$rootfs/etc/options_menu/localization"
+del "$pre_initd/p8020_shonen_hack" "$pre_initd/p8024_zlanguage"
+del "$om_path/commands/c0090_Shonen" "$om_path/commands/c0090_Languages" "$om_path/commands/c0079_ConsoleLanguage"
+del "$om_path/scripts/om_languagemod" "$om_path/scripts/om_languagemod.txt"
+del "$om_path/shonen" "$om_path/languages" "$om_path/localization"
 for bin in nes snes; do
   if [ -f "$rootfs/${bin}_backup" ]; then
     cp -f "$rootfs/${bin}_backup" "$rootfs/bin/$bin"
-    rm -f "$rootfs/${bin}_backup"
+    del "$rootfs/${bin}_backup"
   fi
 done
 
 # om-language-hack state, copied before its uninstall wipes the folder;
 # patches state is kept for OM Game Translations
-cl_old="$rootfs/etc/options_menu/language_hack"
+cl_old="$om_path/language_hack"
 if [ -d "$cl_old" ]; then
-  cl_new="$rootfs/etc/options_menu/console_language"
-  gt_new="$rootfs/etc/options_menu/game_translations"
-  mkdir -p "$cl_new/commands" "$gt_new"
+  gt_new="$om_path/game_translations"
+  mkdir -p "$cl_cmds" "$gt_new"
   for f in "$cl_old"/active.* "$cl_old"/custom "$cl_old"/images; do
-    [ -e "$f" ] && cp -rf "$f" "$cl_new/"
+    [ -e "$f" ] && cp -rf "$f" "$cl_path/"
   done
   for f in "$cl_old"/patches.* "$cl_old"/patches_ips; do
     [ -e "$f" ] && cp -rf "$f" "$gt_new/"
@@ -49,23 +57,20 @@ for cl_unfile in "$installpath/hmod/uninstall-om-language-hack"* \
   [ -f "$cl_unfile" ] && pack_uninstall "${cl_unfile##*/uninstall-}"
 done
 
-# the boot script lives in the addon folder and is copied over only while a language is applied
-rm -f "$rootfs/etc/preinit.d/b8020_console_language" "$rootfs/etc/preinit.d/p8020_console_language"
+# earlier boot script names; the current one is copied below only while a language is applied
+del "$pre_initd/b8020_console_language" "$p_file"
 
 # earlier layouts of the language screen
-cl_cmds_old="$rootfs/etc/options_menu/console_language/commands"
-rm -f "$cl_cmds_old"/c000[0-7]_* "$cl_cmds_old"/_c000[0-7]_* "$cl_cmds_old"/c01[0-9][0-9]_* "$cl_cmds_old"/c88[0-9][0-9]_* "$cl_cmds_old"/_c88[0-9][0-9]_*
+del "$cl_cmds"/c000[0-7]_* "$cl_cmds"/_c000[0-7]_* "$cl_cmds"/c01[0-9][0-9]_* "$cl_cmds"/c88[0-9][0-9]_* "$cl_cmds"/_c88[0-9][0-9]_*
 # the entry sits first in the Language screen now; its separator is shared with the other language addons
-rm -f "$rootfs/etc/options_menu/language/commands/c9010_ConsoleLanguage"
-ls "$rootfs/etc/options_menu/language/commands/"c90[1-9]* >/dev/null 2>&1 ||
-  rm -f "$rootfs/etc/options_menu/language/commands/c9000_separator"
+del "$lang_cmds/c9010_ConsoleLanguage"
+ls "$lang_cmds"/c90[1-9]* >/dev/null 2>&1 || del "$lang_cmds/c9000_separator"
 
 # the title font comes from Font Remount now
-rm -f "$rootfs/etc/options_menu/console_language/assets/fonts/title.fnt" "$rootfs/etc/options_menu/console_language/assets/desktop"/*/title.fnt
-rm -rf "$rootfs/etc/options_menu/console_language/gamefont"
+del "$cl_path/assets/fonts/title.fnt" "$cl_path/assets/desktop"/*/title.fnt "$cl_path/gamefont"
 
 # custom/<code> to custom/<system>/<code>: the files' layout tells which firmware downloaded it
-cl_custom="$rootfs/etc/options_menu/console_language/custom"
+cl_custom="$cl_path/custom"
 for cl_lang in "$cl_custom"/*; do
   cl_code="${cl_lang##*/}"
   case "$cl_code" in nes | shonen | snes) continue ;; esac
@@ -95,7 +100,6 @@ done
 
 transfer_default
 
-if ls "$rootfs/etc/options_menu/console_language"/active.* >/dev/null 2>&1; then
-  cp -f "$rootfs/etc/options_menu/console_language/preinit/p8020_console_language" "$rootfs/etc/preinit.d/p8020_console_language"
-fi
+ls "$cl_path"/active.* >/dev/null 2>&1 && cp -f "$cl_path/preinit/p8020_console_language" "$p_file"
+
 return 1

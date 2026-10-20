@@ -16,18 +16,24 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+del() {
+  rm -rf "$@"
+}
 
-cl_functions="$rootfs/etc/options_menu/console_language/scripts/cl_functions"
-if [ -f "$cl_functions" ]; then
-  source "$cl_functions"
+om_path="$rootfs/etc/options_menu"
+cl_path="$om_path/console_language"
+lang_cmds="$om_path/language/commands"
+pre_initd="$rootfs/etc/preinit.d"
+
+if [ -f "$cl_path/scripts/cl_functions" ]; then
+  source "$cl_path/scripts/cl_functions"
   clInit
   clUmountLang
   clUmountRomaji
 fi
 
-rm -f "$rootfs/etc/preinit.d/b8020_console_language" "$rootfs/etc/preinit.d/p8020_console_language"
-rm -f "$rootfs/etc/options_menu/language/commands/c0001_ConsoleLanguage" "$rootfs/etc/options_menu/language/commands/c9010_ConsoleLanguage"
+del "$pre_initd/b8020_console_language" "$pre_initd/p8020_console_language"
+del "$lang_cmds/c0001_ConsoleLanguage" "$lang_cmds/c9010_ConsoleLanguage"
 # the separator is shared with the other language addons
-ls "$rootfs/etc/options_menu/language/commands/"c000[1-9]_[!s]* >/dev/null 2>&1 ||
-  rm -f "$rootfs/etc/options_menu/language/commands/c0002_separator"
-rm -rf "$rootfs/etc/options_menu/console_language"
+ls "$lang_cmds"/c000[1-9]_[!s]* >/dev/null 2>&1 || del "$lang_cmds/c0002_separator"
+del "$cl_path"
