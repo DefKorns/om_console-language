@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Exec=/bin/clover-kachikachi-wr /var/squashfs/usr/share/games/nes/kachikachi/CLV-P-HACBJ/CLV-P-HACBJ.nes  --guest-overscan-dimensions 0,0,9,3 --initial-fadein-durations 3,2 --volume 82 --enable-armet
+Path=/var/lib/clover/profiles/0/CLV-P-HACBJ
+Name=Ninja Ryūkenden
+Icon=/var/squashfs/usr/share/games/nes/kachikachi/CLV-P-HACBJ/CLV-P-HACBJ.png
+
+[X-CLOVER Game]
+Code=CLV-P-HACBJ
+TestID=251
+ID=0
+Players=1
+Simultaneous=0
+ReleaseDate=1988-12-09
+SaveCount=0
+SortRawTitle=ninja ryūkenden
+SortRawPublisher=TECMO
+Copyright=Ninja Ryūkenden ©1988 KOEI TECMO GAMES All rights reserved.

@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Exec=/bin/clover-kachikachi-wr /var/squashfs/usr/share/games/nes/kachikachi/CLV-P-HACLJ/CLV-P-HACLJ.nes  --guest-overscan-dimensions 0,0,9,3 --initial-fadein-durations 3,2 --volume 78 --enable-armet
+Path=/var/lib/clover/profiles/0/CLV-P-HACLJ
+Name=Downtown Nekketsu Kōshinkyoku: Soreyuke Daiundōkai
+Icon=/var/squashfs/usr/share/games/nes/kachikachi/CLV-P-HACLJ/CLV-P-HACLJ.png
+
+[X-CLOVER Game]
+Code=CLV-P-HACLJ
+TestID=341
+ID=0
+Players=4
+Simultaneous=1
+ReleaseDate=1990-08-07
+SaveCount=0
+SortRawTitle=downtown nekketsu kōshinkyoku: soreyuke daiundōkai
+SortRawPublisher=TECHNŌS JAPAN
+Copyright=Downtown Nekketsu Kōshinkyoku: Soreyuke Daiundōkai © ARC SYSTEM WORKS

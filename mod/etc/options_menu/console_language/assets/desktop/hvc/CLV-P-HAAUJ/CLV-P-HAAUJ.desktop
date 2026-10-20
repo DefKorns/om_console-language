@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Exec=/bin/clover-kachikachi-wr /var/squashfs/usr/share/games/nes/kachikachi/CLV-P-HAAUJ/CLV-P-HAAUJ.nes  --guest-overscan-dimensions 0,0,9,3 --initial-fadein-durations 3,2 --volume 72 --enable-armet
+Path=/var/lib/clover/profiles/0/CLV-P-HAAUJ
+Name=Aisu Kuraimā
+Icon=/var/squashfs/usr/share/games/nes/kachikachi/CLV-P-HAAUJ/CLV-P-HAAUJ.png
+
+[X-CLOVER Game]
+Code=CLV-P-HAAUJ
+TestID=551
+ID=0
+Players=2
+Simultaneous=1
+ReleaseDate=1985-01-30
+SaveCount=0
+SortRawTitle=aisu kuraimā
+SortRawPublisher=NINTENDO
+Copyright=Aisu Kuraimā ©1984 Nintendo
