@@ -27,8 +27,8 @@ cl_url="https://github.com/DefKorns/om_console-language/releases/download/langua
 
 # one entry per language installed for this firmware, by the download entry or a language hmod
 cl_menu_entries() {
-  local lang code lang_code cmd n=100
-  rm -f "$cl_cmds/"c01[0-9][0-9]_*
+  local lang code lang_code cmd n=200
+  rm -f "$cl_cmds/"c02[0-9][0-9]_*
   for lang in "$cl_home/custom/$cl_pack"/*; do
     [ -f "$lang/name" ] || continue
     code="${lang##*/}"
@@ -38,6 +38,14 @@ cl_menu_entries() {
       "COMMAND_NAME=$(cat "$lang/name")" \
       "COMMAND_TYPE=EXTERNAL" "RESTART_UI=FALSE" \
       "COMMAND_STR=sh %script_dir%/console_language.sh apply $code" >"$cmd"
+    # the language in use has its files bound, so it can't be deleted
+    if [ "$code" = "$cl_code" ]; then
+      echo "DELETE_BLOCKED_KEY=CL_DELETE_IN_USE" >>"$cmd"
+    else
+      printf '%s\n' \
+        "DELETE_STR=sh %script_dir%/console_language.sh delete $code; sh %script_dir%/om_console_language" \
+        "DELETE_CONFIRM_KEY=CL_DELETE_CONFIRM" >>"$cmd"
+    fi
     lang_code="$(cl_flag_lang "$code")"
     if [ -f "$cl_home/images/preview_lang_$lang_code.png" ]; then
       echo "PREVIEW_IMAGE=/etc/options_menu/console_language/images/preview_lang_$lang_code.png" >>"$cmd"
@@ -54,10 +62,3 @@ cl_menu_entries() {
     n=$((n + 1))
   done
 }
-
-enable_downloads="$cl_cmds/c8888_Download"
-disable_downloads="$cl_cmds/_c8888_Download"
-enable_revert="$cl_cmds/c8890_Revert"
-disable_revert="$cl_cmds/_c8890_Revert"
-enable_restore="$cl_cmds/c8891_Restore"
-disable_restore="$cl_cmds/_c8891_Restore"

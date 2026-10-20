@@ -19,12 +19,19 @@
 source $mountpoint/etc/options_menu/console_language/scripts/cl_vars
 
 dl_cmds="$cl_home/download/commands"
-dl_list="$cl_home/download/catalog.list"
-rm -rf "$dl_cmds" "$dl_list"
+dl_list="$cl_home/download/catalog.$cl_pack.list"
+rm -rf "$dl_cmds"
 mkdir -p "$dl_cmds"
 
-if "$om_scripts/downloader" "$dl_list" "$cl_url/$cl_pack.list" >/dev/null 2>&1; then
-  printf '%s\n' "COMMAND_NAME=CL_DOWNLOAD_ALL" "COMMAND_TYPE=INTERNAL" \
+# the catalog changes rarely: a day-old copy is used as is, and a stale one when the fetch fails
+if [ ! -s "$dl_list" ] || [ -z "$(find "$dl_list" -mmin -1440 2>/dev/null)" ]; then
+  cl_splash CL_LIST_DOWNLOADING_LINE1 CL_LIST_DOWNLOADING_LINE2
+  "$om_scripts/downloader" "$dl_list.new" "$cl_url/$cl_pack.list" >/dev/null 2>&1 && mv -f "$dl_list.new" "$dl_list"
+  rm -f "$dl_list.new"
+fi
+
+if [ -s "$dl_list" ]; then
+  printf '%s\n' "COMMAND_NAME=CL_DOWNLOAD_ALL" "COMMAND_TYPE=DOWNLOAD" \
     "COMMAND_STR=sh %script_dir%/console_language.sh installall" >"$dl_cmds/c0010_all"
   : >"$dl_cmds/c0020_separator"
   n=100
@@ -34,7 +41,7 @@ if "$om_scripts/downloader" "$dl_list" "$cl_url/$cl_pack.list" >/dev/null 2>&1; 
     cmd="$dl_cmds/c0${n}_$code"
     printf '%s\n' \
       "COMMAND_NAME=$name" \
-      "COMMAND_TYPE=INTERNAL" \
+      "COMMAND_TYPE=DOWNLOAD" \
       "COMMAND_STR=sh %script_dir%/console_language.sh install $code" >"$cmd"
     [ -d "$cl_home/custom/$cl_pack/$code" ] && echo "CONFIRM_KEY=CL_REPLACE_CONFIRM" >>"$cmd"
     lang_code="$(cl_flag_lang "$code")"

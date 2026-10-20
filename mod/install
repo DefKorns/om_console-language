@@ -40,9 +40,6 @@ if [ -d "$cl_old" ]; then
   for f in "$cl_old"/active.* "$cl_old"/custom "$cl_old"/images; do
     [ -e "$f" ] && cp -rf "$f" "$cl_new/"
   done
-  for f in "$cl_old"/commands/c01[0-9][0-9]_*; do
-    [ -f "$f" ] && sed -e "s#lang_hack.sh#console_language.sh#g" -e "s#/language_hack/#/console_language/#g" "$f" >"$cl_new/commands/${f##*/}"
-  done
   for f in "$cl_old"/patches.* "$cl_old"/patches_ips; do
     [ -e "$f" ] && cp -rf "$f" "$gt_new/"
   done
@@ -54,6 +51,14 @@ done
 
 # the boot script lives in the addon folder and is copied over only while a language is applied
 rm -f "$rootfs/etc/preinit.d/b8020_console_language" "$rootfs/etc/preinit.d/p8020_console_language"
+
+# earlier layouts of the language screen
+cl_cmds_old="$rootfs/etc/options_menu/console_language/commands"
+rm -f "$cl_cmds_old"/c000[0-7]_* "$cl_cmds_old"/_c000[0-7]_* "$cl_cmds_old"/c01[0-9][0-9]_* "$cl_cmds_old"/c88[0-9][0-9]_* "$cl_cmds_old"/_c88[0-9][0-9]_*
+# the entry sits first in the Language screen now; its separator is shared with the other language addons
+rm -f "$rootfs/etc/options_menu/language/commands/c9010_ConsoleLanguage"
+ls "$rootfs/etc/options_menu/language/commands/"c90[1-9]* >/dev/null 2>&1 ||
+  rm -f "$rootfs/etc/options_menu/language/commands/c9000_separator"
 
 # the title font comes from Font Remount now
 rm -f "$rootfs/etc/options_menu/console_language/assets/fonts/title.fnt" "$rootfs/etc/options_menu/console_language/assets/desktop"/*/title.fnt

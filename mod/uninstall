@@ -26,8 +26,8 @@ if [ -f "$cl_functions" ]; then
 fi
 
 rm -f "$rootfs/etc/preinit.d/b8020_console_language" "$rootfs/etc/preinit.d/p8020_console_language"
-rm -f "$rootfs/etc/options_menu/language/commands/c9010_ConsoleLanguage"
+rm -f "$rootfs/etc/options_menu/language/commands/c0001_ConsoleLanguage" "$rootfs/etc/options_menu/language/commands/c9010_ConsoleLanguage"
 # the separator is shared with the other language addons
-ls "$rootfs/etc/options_menu/language/commands/"c90[1-9]* >/dev/null 2>&1 ||
-  rm -f "$rootfs/etc/options_menu/language/commands/c9000_separator"
+ls "$rootfs/etc/options_menu/language/commands/"c000[1-9]_[!s]* >/dev/null 2>&1 ||
+  rm -f "$rootfs/etc/options_menu/language/commands/c0002_separator"
 rm -rf "$rootfs/etc/options_menu/console_language"

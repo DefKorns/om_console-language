@@ -1,6 +1,5 @@
 COMMAND_NAME=CL_ROMAJI
 COMMAND_TYPE=EXTERNAL
 RESTART_UI=FALSE
-ENABLE_IF=sh /etc/options_menu/console_language/scripts/console_language.sh romaji-available
 COMMAND_STR=sh %script_dir%/console_language.sh romaji
 STATE_STR=sh %script_dir%/console_language.sh romaji-state

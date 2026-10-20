@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-# Usage: console_language.sh apply <code> | revert | romaji | romaji-state | romaji-available | install <code> | installall | nonet
+# Usage: console_language.sh apply <code> | revert | romaji | romaji-state | install <code> | installall | nonet
 source $mountpoint/etc/options_menu/console_language/scripts/cl_vars
 
 # the binds go in at boot, ahead of fontFix and copyleft
@@ -27,10 +27,6 @@ cl_sync_preinit() {
   else
     rm -f "$dest"
   fi
-}
-
-cl_splash() {
-  "$om_scripts/gen_splash" /tmp/om_splash.png "$@" && decodepng /tmp/om_splash.png >/dev/fb0
 }
 
 # the menu stays paused behind the splash until the console reboots
@@ -92,6 +88,36 @@ cl_romaji_state() {
   [ -f "$cl_home/romaji.$cl_system" ] && echo 1 || echo 0
 }
 
+cl_free_kb() {
+  df -Pk "$1" | awk 'NR==2 {print $4}'
+}
+
+cl_unpacked_kb() {
+  local size_kb=$(($(tail -c4 "$1" | od -An -tu4) / 1024 + 1))
+  echo $((size_kb + size_kb / 10))
+}
+
+# unpacks a downloaded tarball into $2: 0 ok, 1 broken, 3 no space left
+cl_unpack() {
+  local rc=0
+  if [ "$(cl_free_kb "$2")" -lt "$(cl_unpacked_kb "$1")" ]; then
+    rc=3
+    gzip -t "$1" 2>/dev/null || rc=1
+  elif ! tar -xzf "$1" -C "$2"; then
+    rc=1
+    [ "$(cl_free_kb "$2")" -lt 1024 ] && rc=3
+  fi
+  rm -f "$1"
+  return "$rc"
+}
+
+# cancelling mid-download leaves nothing behind
+cl_abort() {
+  trap - TERM INT HUP
+  rm -rf /tmp/cl_*.tar.gz /tmp/cl_stage /tmp/cl_pending
+  exit 1
+}
+
 cl_fetch() {
   local pkg="/tmp/cl_$1"
   local rc
@@ -103,20 +129,31 @@ cl_fetch() {
     rm -f "$pkg"
     return 1
   }
-  tar -xzf "$pkg" -C "$2"
+  cl_unpack "$pkg" "$2"
   rc=$?
-  rm -f "$pkg"
+  downloadError "$rc"
   return "$rc"
+}
+
+# the menu closes after a delete and the entry relaunches it, so this never fails;
+# the language in use is blocked by the menu, this is the safety net
+cl_delete() {
+  [ -n "$1" ] && [ "$1" != "$cl_code" ] || return 0
+  rm -rf "$cl_home/custom/$cl_pack/$1" "$cl_home/custom/$cl_pack/$1.new"
 }
 
 # the active language's files are in use: it goes to <code>.new, swapped in at boot
 cl_install() {
   local dest="$cl_home/custom/$cl_pack/$1"
   local stage="/tmp/cl_stage"
+  trap cl_abort TERM INT HUP
   translate CL_DOWNLOADING
   if [ "$1" = "$cl_code" ]; then
     rm -rf "$stage" && mkdir -p "$stage"
-    cl_fetch "$cl_pack-$1.tar.gz" "$stage" || exit 1
+    cl_fetch "$cl_pack-$1.tar.gz" "$stage" || {
+      rm -rf "$stage"
+      exit 1
+    }
     rm -rf "$dest.new"
     mv "$stage/custom/$cl_pack/$1" "$dest.new"
     rm -rf "$stage"
@@ -128,27 +165,65 @@ cl_install() {
   fi
 }
 
+# handler of omDownloadAll: <rc> <downloaded file>
+cl_installed() {
+  local code="${2#/tmp/cl_$cl_pack-}"
+  local rc="$1"
+  code="${code%.tar.gz}"
+  if [ "$rc" = 0 ]; then
+    cl_unpack "$2" "$cl_home"
+    rc=$?
+  fi
+  case "$rc" in
+  0) ;;
+  3)
+    downloadError 3
+    return 3
+    ;;
+  *) cl_failed="$cl_failed $code" ;;
+  esac
+}
+
+# every language this firmware doesn't have yet, two downloads at a time
 cl_install_all() {
-  local code name missing=0
+  local pending="/tmp/cl_pending"
+  local code name rc
+  if [ ! -x "$om_scripts/downloader" ]; then
+    translate CL_DOWNLOADER_MISSING
+    return 1
+  fi
+  trap cl_abort TERM INT HUP
+  : >"$pending"
   while read -r code name; do
     { [ -z "$code" ] || cl_skip_code "$code" || [ -d "$cl_home/custom/$cl_pack/$code" ]; } && continue
-    missing=1
-    cl_fetch "$cl_pack-$code.tar.gz" "$cl_home" || exit 1
-  done <"$cl_home/download/catalog.list"
-  if [ "$missing" = 0 ]; then
+    printf '%s\t%s\n' "/tmp/cl_$cl_pack-$code.tar.gz" "$cl_url/$cl_pack-$code.tar.gz" >>"$pending"
+  done <"$cl_home/download/catalog.$cl_pack.list"
+  if [ ! -s "$pending" ]; then
+    rm -f "$pending"
     translate CL_ALL_INSTALLED
-    return
+    return 0
   fi
+  translate CL_DOWNLOADING
+  cl_failed=""
+  omDownloadAll "$pending" cl_installed 2
+  rc=$?
+  rm -f "$pending"
   cl_menu_entries
-  translate CL_DOWNLOADED
+  if [ -n "$cl_failed" ]; then
+    translate CL_FAILED
+    echo "$cl_failed"
+    return 1
+  fi
+  [ "$rc" = 0 ] && translate CL_DOWNLOADED
+  return "$rc"
 }
 
 case "$1" in
 apply) cl_apply "$2" ;;
 revert) cl_revert ;;
 romaji) cl_romaji ;;
+delete) cl_delete "$2" ;;
 romaji-state) cl_romaji_state ;;
-romaji-available) [ "$sfregion" = "jpn" ] && [ -f "$cl_home/active.$cl_system" ] ;;
 install) cl_install "$2" ;;
 installall) cl_install_all ;;
 nonet) netChecker ;;
