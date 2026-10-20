@@ -19,9 +19,8 @@ On the Japanese systems, **Rōmaji titles** shows the games' names in rōmaji in
 ```sh
 git submodule update --init
 make
-make packs     # out/catalog/*.tar.gz
 ```
-The language hmods and the catalog are published in [om_console-language-packs](https://github.com/DefKorns/om_console-language-packs) with `sh tools/publish_packs.sh catalog` (the `languages-v1` release the download entry reads) and `sh tools/publish_packs.sh hmods <tag>` (a release with the hmods). `--check` lists what would be sent.
+The language packs and their build live in [om_console-language-packs](https://github.com/DefKorns/om_console-language-packs), which only holds the releases.
 
 ## Credits
 * Advokaten (Original HMODS and Idea)
