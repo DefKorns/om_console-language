@@ -21,7 +21,7 @@
 cl_dir="$rootfs/etc/options_menu/console_language"
 cl_assets="$cl_dir/assets"
 
-cl_init() {
+clInit() {
   local share="$mountpoint/usr/share"
   cl_system="$sftype"
   cl_pack="$sftype"
@@ -52,7 +52,7 @@ cl_init() {
 }
 
 # the language code the Options Menu names its flags and previews by
-cl_flag_lang() {
+clFlagLang() {
   case "$1" in
   eur_swe) echo sv ;;
   eur_nor) echo no ;;
@@ -63,19 +63,19 @@ cl_flag_lang() {
 }
 
 # draws a splash from translation keys, one line each
-cl_splash() {
+clSplash() {
   "$om_scripts/gen_splash" /tmp/om_splash.png "$@" && decodepng /tmp/om_splash.png >/dev/fb0
 }
 
 # the Japanese firmwares already have "Revert to Japanese"
-cl_skip_code() {
+clSkipCode() {
   [ "$1" = "jpn_ja" ] || return 1
   case "$cl_system" in shonen | hvc | shvc) return 0 ;; esac
   return 1
 }
 
 # Japanese firmwares ship the other languages hidden; hvc gets them from assets
-cl_builtin() {
+clBuiltin() {
   case "$cl_system" in
   shonen | shvc) echo "$cl_strings/$1/strings.lng" ;;
   hvc) echo "$cl_assets/strings/$1/strings.json" ;;
@@ -83,16 +83,16 @@ cl_builtin() {
   esac
 }
 
-cl_bind() {
+clBind() {
   [ -e "$1" ] && [ -e "$2" ] && mount_bind "$1" "$2"
 }
 
-cl_unbind() {
+clUnbind() {
   grep -q " $1 " /proc/mounts && umount "$1" 2>/dev/null
 }
 
 # one line per bind: "<source> <target>", from the active state
-cl_mounts() {
+clMounts() {
   local f
   [ -z "$cl_code" ] && return
   if [ -f "$cl_custom/strings.lng" ]; then
@@ -107,7 +107,7 @@ cl_mounts() {
       echo "$cl_custom/strings/eur_ru/${cl_jpn##*/} $cl_jpn"
     fi
   else
-    echo "$(cl_builtin "$cl_code") $cl_jpn"
+    echo "$(clBuiltin "$cl_code") $cl_jpn"
   fi
   # the stock Japanese fonts lack accented glyphs and the UI dies on them (C8);
   # same targets fontFix binds, which wins for fonts it provides
@@ -132,7 +132,7 @@ cl_mounts() {
 }
 
 # languages re-downloaded while in use wait as <code>.new until nothing is bound
-cl_swap_staged() {
+clSwapStaged() {
   local staged
   for staged in "$cl_dir"/custom/*/*.new; do
     [ -d "$staged" ] || continue
@@ -140,24 +140,24 @@ cl_swap_staged() {
   done
 }
 
-cl_mount_lang() {
+clMountLang() {
   local src
   local dst
-  cl_mounts | while read -r src dst; do
-    cl_bind "$src" "$dst"
+  clMounts | while read -r src dst; do
+    clBind "$src" "$dst"
   done
 }
 
-cl_umount_lang() {
+clUmountLang() {
   local src
   local dst
-  cl_mounts | while read -r src dst; do
-    cl_unbind "$dst"
+  clMounts | while read -r src dst; do
+    clUnbind "$dst"
   done
 }
 
 # Famicom titles in rōmaji: the desktop files go over the games folder as an overlay
-cl_games() {
+clGames() {
   local storage first
   storage="$(findGameStorage)"
   if [ -n "$storage" ]; then
@@ -167,18 +167,18 @@ cl_games() {
   echo "$mountpoint$gamepath"
 }
 
-cl_romaji_on() {
+clRomajiOn() {
   [ -f "$cl_dir/romaji.$cl_system" ]
 }
 
-cl_mount_romaji() {
+clMountRomaji() {
   local games
-  [ -n "$cl_code" ] && cl_romaji_on && [ -d "$cl_assets/desktop/$cl_system" ] || return 0
-  games="$(cl_games)" && [ -n "$games" ] || return 0
+  [ -n "$cl_code" ] && clRomajiOn && [ -d "$cl_assets/desktop/$cl_system" ] || return 0
+  games="$(clGames)" && [ -n "$games" ] || return 0
   mount -t overlayfs -o lowerdir="$games",upperdir="$cl_assets/desktop/$cl_system" overlayfs "$games"
 }
 
-cl_umount_romaji() {
+clUmountRomaji() {
   local games
-  games="$(cl_games)" && [ -n "$games" ] && cl_unbind "$games"
+  games="$(clGames)" && [ -n "$games" ] && clUnbind "$games"
 }

@@ -18,7 +18,7 @@
 # whole strings dir for custom packs), ahead of fontFix and copyleft. It sits in
 # /etc/preinit.d only while a language is applied on some firmware.
 source "$rootfs/etc/options_menu/console_language/scripts/cl_functions"
-cl_init
-cl_swap_staged
-cl_mount_lang
-cl_mount_romaji
+clInit
+clSwapStaged
+clMountLang
+clMountRomaji

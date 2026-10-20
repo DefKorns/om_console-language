@@ -20,9 +20,9 @@
 cl_functions="$rootfs/etc/options_menu/console_language/scripts/cl_functions"
 if [ -f "$cl_functions" ]; then
   source "$cl_functions"
-  cl_init
-  cl_umount_lang
-  cl_umount_romaji
+  clInit
+  clUmountLang
+  clUmountRomaji
 fi
 
 rm -f "$rootfs/etc/preinit.d/b8020_console_language" "$rootfs/etc/preinit.d/p8020_console_language"
