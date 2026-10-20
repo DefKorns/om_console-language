@@ -21,7 +21,7 @@ git submodule update --init
 make
 make packs     # out/catalog/*.tar.gz
 ```
-The language hmods and the catalog are published in [om_console-language-packs](https://github.com/DefKorns/om_console-language-packs): `gh release upload languages-v1 out/catalog/* --clobber -R DefKorns/om_console-language-packs` for the catalog, and a `v*` release there for the `out/om_console-language_*_*.hmod` files.
+The language hmods and the catalog are published in [om_console-language-packs](https://github.com/DefKorns/om_console-language-packs) with `sh tools/publish_packs.sh catalog` (the `languages-v1` release the download entry reads) and `sh tools/publish_packs.sh hmods <tag>` (a release with the hmods). `--check` lists what would be sent.
 
 ## Credits
 * Advokaten (Original HMODS and Idea)
