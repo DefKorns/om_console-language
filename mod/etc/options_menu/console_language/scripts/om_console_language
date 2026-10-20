@@ -34,15 +34,16 @@ clHide() {
 
 cl_builtin_names="c0100_usa_en c0101_eur_de c0102_eur_es c0103_eur_fr c0104_eur_it c0105_eur_nl c0106_eur_pt c0107_eur_ru"
 
-# the hidden languages, "Revert to Japanese" and the Rōmaji titles only exist on the Japanese firmwares
+# the hidden languages, "Revert to Japanese" and the Rōmaji titles only exist on the Japanese firmwares;
+# the last two also need a language applied
 case "$cl_system" in
 shonen | hvc | shvc)
-  clShow $cl_builtin_names c0020_Revert
+  clShow $cl_builtin_names
   clHide c0021_Restore
   if [ -f "$cl_home/active.$cl_system" ]; then
-    clShow c0030_Romaji
+    clShow c0020_Revert c0030_Romaji
   else
-    clHide c0030_Romaji
+    clHide c0020_Revert c0030_Romaji
   fi
   ;;
 *)
