@@ -62,6 +62,16 @@ clFlagLang() {
   esac
 }
 
+# the Options Menu follows the console language; /var is rebuilt at every boot
+clUiLang() {
+  local ui="$mountpoint/var/console_language_ui"
+  if [ -n "$cl_code" ]; then
+    clFlagLang "$cl_code" >"$ui"
+  else
+    rm -f "$ui"
+  fi
+}
+
 # the Japanese firmwares already have "Revert to Japanese"
 clSkipCode() {
   [ "$1" = "jpn_ja" ] || return 1

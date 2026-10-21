@@ -47,6 +47,7 @@ clReload() {
   esac
   clSyncPreinit
   clInit
+  clUiLang
   clRebind
   clMountRomaji
   fontFix
