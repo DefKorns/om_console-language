@@ -62,11 +62,6 @@ clFlagLang() {
   esac
 }
 
-# draws a splash from translation keys, one line each
-clSplash() {
-  "$om_scripts/gen_splash" /tmp/om_splash.png "$@" && decodepng /tmp/om_splash.png >/dev/fb0
-}
-
 # the Japanese firmwares already have "Revert to Japanese"
 clSkipCode() {
   [ "$1" = "jpn_ja" ] || return 1

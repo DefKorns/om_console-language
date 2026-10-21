@@ -29,22 +29,14 @@ clSyncPreinit() {
   fi
 }
 
-# the menu holds /dev/fb0, so uistop would kill this script: remote-exec runs the reload
 clReloadLater() {
-  clSplash "$1_LINE1" CL_RELOADING
+  omSplash "$1_LINE1" CL_RELOADING
   shift
-  echo "sh $cl_home/scripts/console_language.sh reload $*" >/var/exec.flag.tmp
-  mv /var/exec.flag.tmp /var/exec.flag
+  omReloadMenuLater sh "$cl_home/scripts/console_language.sh" reload "$@"
 }
 
-# chmenu refuses the folder already shown unless its state says otherwise
+# runs from omReloadMenu, with the UI stopped
 clReload() {
-  local menu_state="/var/saves/$modname/menu"
-  local current_menu="000"
-  rm -f /tmp/options.flag
-  uistop
-  uiresume
-  timeout="" waittimeout 1500 '! lsof -n | grep -qF "/dev/fb0"' "framebuffer"
   clUmountRomaji
   clUmountLang
   case "$1" in
@@ -58,16 +50,10 @@ clReload() {
   clRebind
   clMountRomaji
   fontFix
-  [ -f "$menu_state" ] && current_menu="$(cat "$menu_state")"
-  echo reload >"$menu_state"
-  /bin/chmenu "$current_menu" || /bin/chmenu 000 || {
-    echo "$current_menu" >"$menu_state"
-    uistart
-  }
 }
 
 clFail() {
-  clSplash "$1"
+  omSplash "$1"
   sleep 3
   sh "$om_scripts/ResumeUI.sh"
   exit 1
@@ -105,29 +91,6 @@ clRomajiState() {
   [ -f "$cl_home/romaji.$cl_system" ] && echo 1 || echo 0
 }
 
-clFreeKb() {
-  df -Pk "$1" | awk 'NR==2 {print $4}'
-}
-
-clUnpackedKb() {
-  local size_kb=$(($(tail -c4 "$1" | od -An -tu4) / 1024 + 1))
-  echo $((size_kb + size_kb / 10))
-}
-
-# unpacks a downloaded tarball into $2: 0 ok, 1 broken, 3 no space left
-clUnpack() {
-  local rc=0
-  if [ "$(clFreeKb "$2")" -lt "$(clUnpackedKb "$1")" ]; then
-    rc=3
-    gzip -t "$1" 2>/dev/null || rc=1
-  elif ! tar -xzf "$1" -C "$2"; then
-    rc=1
-    [ "$(clFreeKb "$2")" -lt 1024 ] && rc=3
-  fi
-  rm -f "$1"
-  return "$rc"
-}
-
 # cancelling mid-download leaves nothing behind
 clAbort() {
   trap - TERM INT HUP
@@ -146,7 +109,7 @@ clFetch() {
     rm -f "$pkg"
     return 1
   }
-  clUnpack "$pkg" "$2"
+  omUnpack "$pkg" "$2"
   rc=$?
   downloadError "$rc"
   return "$rc"
@@ -188,7 +151,7 @@ clInstalled() {
   local rc="$1"
   code="${code%.tar.gz}"
   if [ "$rc" = 0 ]; then
-    clUnpack "$2" "$cl_home"
+    omUnpack "$2" "$cl_home"
     rc=$?
   fi
   case "$rc" in
