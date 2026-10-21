@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-# Usage: console_language.sh apply <code> | revert | romaji | romaji-state | install <code> | installall | nonet
+# Usage: console_language.sh apply <code> | revert | romaji | reload <change> [code] | romaji-state | install <code> | installall | nonet
 source $mountpoint/etc/options_menu/console_language/scripts/cl_vars
 
 # the binds go in at boot, ahead of fontFix and copyleft
@@ -29,12 +29,41 @@ clSyncPreinit() {
   fi
 }
 
-# the menu stays paused behind the splash until the console reboots
-clReboot() {
-  clSplash "$1_LINE1" "$1_LINE2"
-  sleep 1
-  hakchi reboot >/dev/null 2>&1
-  sleep 30
+# the menu holds /dev/fb0, so uistop would kill this script: remote-exec runs the reload
+clReloadLater() {
+  clSplash "$1_LINE1" CL_RELOADING
+  shift
+  echo "sh $cl_home/scripts/console_language.sh reload $*" >/var/exec.flag.tmp
+  mv /var/exec.flag.tmp /var/exec.flag
+}
+
+# chmenu refuses the folder already shown unless its state says otherwise
+clReload() {
+  local menu_state="/var/saves/$modname/menu"
+  local current_menu="000"
+  rm -f /tmp/options.flag
+  uistop
+  uiresume
+  timeout="" waittimeout 1500 '! lsof -n | grep -qF "/dev/fb0"' "framebuffer"
+  clUmountRomaji
+  clUmountLang
+  case "$1" in
+  apply) echo "$2" >"$cl_home/active.$cl_system" ;;
+  revert) rm -f "$cl_home/active.$cl_system" "$cl_home/romaji.$cl_system" ;;
+  romaji-on) : >"$cl_home/romaji.$cl_system" ;;
+  romaji-off) rm -f "$cl_home/romaji.$cl_system" ;;
+  esac
+  clSyncPreinit
+  clInit
+  clRebind
+  clMountRomaji
+  fontFix
+  [ -f "$menu_state" ] && current_menu="$(cat "$menu_state")"
+  echo reload >"$menu_state"
+  /bin/chmenu "$current_menu" || /bin/chmenu 000 || {
+    echo "$current_menu" >"$menu_state"
+    uistart
+  }
 }
 
 clFail() {
@@ -54,28 +83,22 @@ clAvailable() {
 
 clApply() {
   clAvailable "$1" || clFail CL_NOT_FOUND
-  echo "$1" >"$cl_home/active.$cl_system"
-  clSyncPreinit
-  clReboot CL_APPLYING
+  clReloadLater CL_APPLYING apply "$1"
 }
 
 clRevert() {
-  rm -f "$cl_home/active.$cl_system" "$cl_home/romaji.$cl_system"
-  clSyncPreinit
   case "$cl_system" in
-  shonen | hvc | shvc) clReboot CL_REVERTING ;;
-  *) clReboot CL_RESTORING ;;
+  shonen | hvc | shvc) clReloadLater CL_REVERTING revert ;;
+  *) clReloadLater CL_RESTORING revert ;;
   esac
 }
 
 clRomaji() {
   [ -f "$cl_home/active.$cl_system" ] || clFail CL_ROMAJI_NEEDS_LANGUAGE
   if [ -f "$cl_home/romaji.$cl_system" ]; then
-    rm -f "$cl_home/romaji.$cl_system"
-    clReboot CL_ROMAJI_OFF
+    clReloadLater CL_ROMAJI_OFF romaji-off
   else
-    : >"$cl_home/romaji.$cl_system"
-    clReboot CL_ROMAJI_ON
+    clReloadLater CL_ROMAJI_ON romaji-on
   fi
 }
 
@@ -217,6 +240,7 @@ case "$1" in
 apply) clApply "$2" ;;
 revert) clRevert ;;
 romaji) clRomaji ;;
+reload) clReload "$2" "$3" ;;
 delete) clDelete "$2" ;;
 romaji-state) clRomajiState ;;
 install) clInstall "$2" ;;
