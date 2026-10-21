@@ -18,7 +18,6 @@ CL_DOWNLOADER_MISSING=ダウンロードにはOptions Menu v2.0.0-beta2以降が
 CL_ROMAJI=ローマ字タイトル
 CL_ROMAJI_ON_LINE1=ローマ字タイトルを適用中
 CL_ROMAJI_OFF_LINE1=ローマ字タイトルを解除中
-CL_ROMAJI_NEEDS_LANGUAGE=先に言語を適用してください
 CL_DELETE_CONFIRM=この言語を削除しますか？
 CL_DELETE_IN_USE=この言語は使用中のため削除できません。
 CL_LIST_DOWNLOADING_LINE1=言語リストをダウンロード中

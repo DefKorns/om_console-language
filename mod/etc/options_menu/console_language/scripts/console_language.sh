@@ -19,10 +19,10 @@
 source $mountpoint/etc/options_menu/console_language/scripts/cl_vars
 
 # the binds go in at boot, ahead of fontFix and copyleft
-# the boot script only exists while a language is applied on some firmware
+# the boot script only exists while a language or rōmaji is on for some firmware
 clSyncPreinit() {
   local dest="$mountpoint/etc/preinit.d/p8020_console_language"
-  if ls "$cl_home"/active.* >/dev/null 2>&1; then
+  if [ -n "$(find "$cl_home" -maxdepth 1 \( -name 'active.*' -o -name 'romaji.*' \))" ]; then
     cp -f "$cl_home/preinit/p8020_console_language" "$dest"
   else
     rm -f "$dest"
@@ -49,7 +49,7 @@ clReload() {
   clUmountLang
   case "$1" in
   apply) echo "$2" >"$cl_home/active.$cl_system" ;;
-  revert) rm -f "$cl_home/active.$cl_system" "$cl_home/romaji.$cl_system" ;;
+  revert) rm -f "$cl_home/active.$cl_system" ;;
   romaji-on) : >"$cl_home/romaji.$cl_system" ;;
   romaji-off) rm -f "$cl_home/romaji.$cl_system" ;;
   esac
@@ -94,7 +94,6 @@ clRevert() {
 }
 
 clRomaji() {
-  [ -f "$cl_home/active.$cl_system" ] || clFail CL_ROMAJI_NEEDS_LANGUAGE
   if [ -f "$cl_home/romaji.$cl_system" ]; then
     clReloadLater CL_ROMAJI_OFF romaji-off
   else

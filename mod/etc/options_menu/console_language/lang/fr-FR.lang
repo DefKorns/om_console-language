@@ -18,7 +18,6 @@ CL_DOWNLOADER_MISSING=Les téléchargements nécessitent Options Menu v2.0.0-bet
 CL_ROMAJI=Titres en romaji
 CL_ROMAJI_ON_LINE1=Application des titres en romaji
 CL_ROMAJI_OFF_LINE1=Retrait des titres en romaji
-CL_ROMAJI_NEEDS_LANGUAGE=Appliquez d'abord une langue
 CL_DELETE_CONFIRM=Supprimer cette langue ?
 CL_DELETE_IN_USE=Cette langue est utilisée et ne peut pas être supprimée.
 CL_LIST_DOWNLOADING_LINE1=Téléchargement de la Liste des Langues

@@ -18,7 +18,6 @@ CL_DOWNLOADER_MISSING=Downloads need Options Menu v2.0.0-beta2 or newer.
 CL_ROMAJI=Romaji titles
 CL_ROMAJI_ON_LINE1=Applying Romaji Titles
 CL_ROMAJI_OFF_LINE1=Removing Romaji Titles
-CL_ROMAJI_NEEDS_LANGUAGE=Apply a language first
 CL_DELETE_CONFIRM=Delete this language?
 CL_DELETE_IN_USE=This language is in use and can't be removed.
 CL_LIST_DOWNLOADING_LINE1=Downloading Language List

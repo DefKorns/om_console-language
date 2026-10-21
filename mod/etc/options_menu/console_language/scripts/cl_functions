@@ -202,7 +202,7 @@ clRomajiOn() {
 
 clMountRomaji() {
   local games
-  [ -n "$cl_code" ] && clRomajiOn && [ -d "$cl_assets/desktop/$cl_system" ] || return 0
+  clRomajiOn && [ -d "$cl_assets/desktop/$cl_system" ] || return 0
   games="$(clGames)" && [ -n "$games" ] || return 0
   mount -t overlayfs -o lowerdir="$games",upperdir="$cl_assets/desktop/$cl_system" overlayfs "$games"
 }

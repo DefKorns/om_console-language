@@ -57,7 +57,7 @@ for cl_unfile in "$installpath/hmod/uninstall-om-language-hack"* \
   [ -f "$cl_unfile" ] && pack_uninstall "${cl_unfile##*/uninstall-}"
 done
 
-# earlier boot script names; the current one is copied below only while a language is applied
+# earlier boot script names; the current one is copied below only while a language or rōmaji is on
 del "$pre_initd/b8020_console_language" "$p_file"
 
 # earlier layouts of the language screen
@@ -100,6 +100,6 @@ done
 
 transfer_default
 
-ls "$cl_path"/active.* >/dev/null 2>&1 && cp -f "$cl_path/preinit/p8020_console_language" "$p_file"
+[ -n "$(find "$cl_path" -maxdepth 1 \( -name 'active.*' -o -name 'romaji.*' \))" ] && cp -f "$cl_path/preinit/p8020_console_language" "$p_file"
 
 return 1

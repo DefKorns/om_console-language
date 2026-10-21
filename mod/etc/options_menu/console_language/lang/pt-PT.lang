@@ -18,7 +18,6 @@ CL_DOWNLOADER_MISSING=As transferências precisam do Options Menu v2.0.0-beta2 o
 CL_ROMAJI=Títulos em romaji
 CL_ROMAJI_ON_LINE1=A Aplicar Títulos em Romaji
 CL_ROMAJI_OFF_LINE1=A Remover Títulos em Romaji
-CL_ROMAJI_NEEDS_LANGUAGE=Aplica primeiro um idioma
 CL_DELETE_CONFIRM=Eliminar este idioma?
 CL_DELETE_IN_USE=Este idioma está em uso e não pode ser removido.
 CL_LIST_DOWNLOADING_LINE1=A Descarregar Lista de Idiomas

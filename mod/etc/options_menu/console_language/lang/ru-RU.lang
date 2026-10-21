@@ -18,7 +18,6 @@ CL_DOWNLOADER_MISSING=Для загрузки нужен Options Menu v2.0.0-bet
 CL_ROMAJI=Названия ромадзи
 CL_ROMAJI_ON_LINE1=Применение названий ромадзи
 CL_ROMAJI_OFF_LINE1=Отключение названий ромадзи
-CL_ROMAJI_NEEDS_LANGUAGE=Сначала примените язык
 CL_DELETE_CONFIRM=Удалить этот язык?
 CL_DELETE_IN_USE=Этот язык используется и не может быть удалён.
 CL_LIST_DOWNLOADING_LINE1=Загрузка списка языков
