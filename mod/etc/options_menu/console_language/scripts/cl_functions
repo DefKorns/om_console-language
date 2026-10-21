@@ -62,9 +62,14 @@ clFlagLang() {
   esac
 }
 
-# draws a splash from translation keys, one line each
-clSplash() {
-  "$om_scripts/gen_splash" /tmp/om_splash.png "$@" && decodepng /tmp/om_splash.png >/dev/fb0
+# the Options Menu follows the console language; /var is rebuilt at every boot
+clUiLang() {
+  local ui="$mountpoint/var/console_language_ui"
+  if [ -n "$cl_code" ]; then
+    clFlagLang "$cl_code" >"$ui"
+  else
+    rm -f "$ui"
+  fi
 }
 
 # the Japanese firmwares already have "Revert to Japanese"
@@ -156,6 +161,35 @@ clUmountLang() {
   done
 }
 
+# the strings folder and every bind inside it, innermost first
+clStringMounts() {
+  awk -v d="$cl_strings" '$2 == d || index($2, d "/") == 1 { print $2 }' /proc/mounts | sort -r
+}
+
+# copyleft copies each strings file at boot from what is bound then, and keeps the copy
+clCopyleft() {
+  local copyleft="$mountpoint/etc/preinit.d/p8026_copyleft"
+  local l
+  [ -f "$copyleft" ] || return 0
+  find "$cl_strings" -name "strings.*" | while read -r l; do
+    rm -f "$mountpoint/var/copyleft/${l#"$mountpoint"/usr/share/}"
+  done
+  source_parts "$copyleft"
+}
+
+# mount_bind replaces what a target holds, so the language goes back in boot order:
+# copyleft on its strings, fontFix (run by the caller) on its fonts
+clRebind() {
+  local dst
+  clStringMounts | while read -r dst; do
+    umount "$dst"
+  done
+  clUmountLang
+  clSwapStaged
+  clMountLang
+  clCopyleft
+}
+
 # Famicom titles in rōmaji: the desktop files go over the games folder as an overlay
 clGames() {
   local storage first
@@ -173,7 +207,7 @@ clRomajiOn() {
 
 clMountRomaji() {
   local games
-  [ -n "$cl_code" ] && clRomajiOn && [ -d "$cl_assets/desktop/$cl_system" ] || return 0
+  clRomajiOn && [ -d "$cl_assets/desktop/$cl_system" ] || return 0
   games="$(clGames)" && [ -n "$games" ] || return 0
   mount -t overlayfs -o lowerdir="$games",upperdir="$cl_assets/desktop/$cl_system" overlayfs "$games"
 }

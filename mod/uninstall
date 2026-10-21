@@ -28,6 +28,7 @@ pre_initd="$rootfs/etc/preinit.d"
 if [ -f "$cl_path/scripts/cl_functions" ]; then
   source "$cl_path/scripts/cl_functions"
   clInit
+  rm -f "$mountpoint/var/console_language_ui"
   clUmountLang
   clUmountRomaji
 fi

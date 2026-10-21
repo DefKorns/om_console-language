@@ -19,6 +19,7 @@
 # /etc/preinit.d only while a language is applied on some firmware.
 source "$rootfs/etc/options_menu/console_language/scripts/cl_functions"
 clInit
+clUiLang
 clSwapStaged
 clMountLang
 clMountRomaji

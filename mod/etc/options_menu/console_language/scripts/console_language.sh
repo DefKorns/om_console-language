@@ -15,30 +15,46 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-# Usage: console_language.sh apply <code> | revert | romaji | romaji-state | install <code> | installall | nonet
+# Usage: console_language.sh apply <code> | revert | romaji | reload <change> [code] | romaji-state | install <code> | installall | nonet
 source $mountpoint/etc/options_menu/console_language/scripts/cl_vars
 
 # the binds go in at boot, ahead of fontFix and copyleft
-# the boot script only exists while a language is applied on some firmware
+# the boot script only exists while a language or rōmaji is on for some firmware
 clSyncPreinit() {
   local dest="$mountpoint/etc/preinit.d/p8020_console_language"
-  if ls "$cl_home"/active.* >/dev/null 2>&1; then
+  if [ -n "$(find "$cl_home" -maxdepth 1 \( -name 'active.*' -o -name 'romaji.*' \))" ]; then
     cp -f "$cl_home/preinit/p8020_console_language" "$dest"
   else
     rm -f "$dest"
   fi
 }
 
-# the menu stays paused behind the splash until the console reboots
-clReboot() {
-  clSplash "$1_LINE1" "$1_LINE2"
-  sleep 1
-  hakchi reboot >/dev/null 2>&1
-  sleep 30
+clReloadLater() {
+  omSplash "$1_LINE1" CL_RELOADING
+  shift
+  omReloadMenuLater sh "$cl_home/scripts/console_language.sh" reload "$@"
+}
+
+# runs from omReloadMenu, with the UI stopped
+clReload() {
+  clUmountRomaji
+  clUmountLang
+  case "$1" in
+  apply) echo "$2" >"$cl_home/active.$cl_system" ;;
+  revert) rm -f "$cl_home/active.$cl_system" ;;
+  romaji-on) : >"$cl_home/romaji.$cl_system" ;;
+  romaji-off) rm -f "$cl_home/romaji.$cl_system" ;;
+  esac
+  clSyncPreinit
+  clInit
+  clUiLang
+  clRebind
+  clMountRomaji
+  fontFix
 }
 
 clFail() {
-  clSplash "$1"
+  omSplash "$1"
   sleep 3
   sh "$om_scripts/ResumeUI.sh"
   exit 1
@@ -54,56 +70,26 @@ clAvailable() {
 
 clApply() {
   clAvailable "$1" || clFail CL_NOT_FOUND
-  echo "$1" >"$cl_home/active.$cl_system"
-  clSyncPreinit
-  clReboot CL_APPLYING
+  clReloadLater CL_APPLYING apply "$1"
 }
 
 clRevert() {
-  rm -f "$cl_home/active.$cl_system" "$cl_home/romaji.$cl_system"
-  clSyncPreinit
   case "$cl_system" in
-  shonen | hvc | shvc) clReboot CL_REVERTING ;;
-  *) clReboot CL_RESTORING ;;
+  shonen | hvc | shvc) clReloadLater CL_REVERTING revert ;;
+  *) clReloadLater CL_RESTORING revert ;;
   esac
 }
 
 clRomaji() {
-  [ -f "$cl_home/active.$cl_system" ] || clFail CL_ROMAJI_NEEDS_LANGUAGE
   if [ -f "$cl_home/romaji.$cl_system" ]; then
-    rm -f "$cl_home/romaji.$cl_system"
-    clReboot CL_ROMAJI_OFF
+    clReloadLater CL_ROMAJI_OFF romaji-off
   else
-    : >"$cl_home/romaji.$cl_system"
-    clReboot CL_ROMAJI_ON
+    clReloadLater CL_ROMAJI_ON romaji-on
   fi
 }
 
 clRomajiState() {
   [ -f "$cl_home/romaji.$cl_system" ] && echo 1 || echo 0
-}
-
-clFreeKb() {
-  df -Pk "$1" | awk 'NR==2 {print $4}'
-}
-
-clUnpackedKb() {
-  local size_kb=$(($(tail -c4 "$1" | od -An -tu4) / 1024 + 1))
-  echo $((size_kb + size_kb / 10))
-}
-
-# unpacks a downloaded tarball into $2: 0 ok, 1 broken, 3 no space left
-clUnpack() {
-  local rc=0
-  if [ "$(clFreeKb "$2")" -lt "$(clUnpackedKb "$1")" ]; then
-    rc=3
-    gzip -t "$1" 2>/dev/null || rc=1
-  elif ! tar -xzf "$1" -C "$2"; then
-    rc=1
-    [ "$(clFreeKb "$2")" -lt 1024 ] && rc=3
-  fi
-  rm -f "$1"
-  return "$rc"
 }
 
 # cancelling mid-download leaves nothing behind
@@ -124,7 +110,7 @@ clFetch() {
     rm -f "$pkg"
     return 1
   }
-  clUnpack "$pkg" "$2"
+  omUnpack "$pkg" "$2"
   rc=$?
   downloadError "$rc"
   return "$rc"
@@ -166,7 +152,7 @@ clInstalled() {
   local rc="$1"
   code="${code%.tar.gz}"
   if [ "$rc" = 0 ]; then
-    clUnpack "$2" "$cl_home"
+    omUnpack "$2" "$cl_home"
     rc=$?
   fi
   case "$rc" in
@@ -217,6 +203,7 @@ case "$1" in
 apply) clApply "$2" ;;
 revert) clRevert ;;
 romaji) clRomaji ;;
+reload) clReload "$2" "$3" ;;
 delete) clDelete "$2" ;;
 romaji-state) clRomajiState ;;
 install) clInstall "$2" ;;
