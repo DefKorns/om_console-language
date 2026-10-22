@@ -10,13 +10,13 @@ English is built in. The other languages come either as separate hmods from that
 
 Each firmware keeps its own language, so multi-booting needs no `.hsqs`: hakchi switches firmware and the choice follows it.
 
-### Credits
+## Credits
 
-* Advokaten (Original HMODS and Idea)
-* DefKorns (Developer)
+- Advokaten (Original HMODS and Idea)
+- DefKorns (Developer)
 
-### Thanks to
+## Thanks to
 
-* bslenul
-* CompCom
-* darkdev1
+- bslenul
+- CompCom
+- darkdev1

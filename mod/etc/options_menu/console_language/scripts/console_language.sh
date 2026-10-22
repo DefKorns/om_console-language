@@ -148,7 +148,7 @@ clInstall() {
 
 # handler of omDownloadAll: <rc> <downloaded file>
 clInstalled() {
-  local code="${2#/tmp/cl_$cl_pack-}"
+  local code="${2#/tmp/cl_"$cl_pack"-}"
   local rc="$1"
   code="${code%.tar.gz}"
   if [ "$rc" = 0 ]; then
