@@ -22,6 +22,14 @@ make
 ```
 The language packs and their build live in [om_console-language-packs](https://github.com/DefKorns/om_console-language-packs), which only holds the releases.
 
+## Contributing
+
+Bug reports and ideas are welcome in the [issues](https://github.com/DefKorns/om_console-language/issues), and so are pull requests:
+
+- **Formatting:** [`.editorconfig`](.editorconfig) sets it: UTF-8, LF line endings, a final newline, no trailing whitespace, 4 spaces for C/C++, 2 for shell scripts, tabs only in the Makefile.
+- **Only change what you need:** don't reformat, re-indent or strip whitespace in lines you aren't changing. The **Style** check on pull requests looks only at the lines you add.
+- Everything else follows the Options Menu's [code style](https://github.com/DefKorns/OptionsMenu#code-style).
+
 ## Credits
 * Advokaten (Original HMODS and Idea)
 * DefKorns (Developer)
