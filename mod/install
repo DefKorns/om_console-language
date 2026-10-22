@@ -39,17 +39,12 @@ for bin in nes snes; do
   fi
 done
 
-# om-language-hack state, copied before its uninstall wipes the folder;
-# patches state is kept for OM Game Translations
+# om-language-hack state, copied before its uninstall wipes the folder
 cl_old="$om_path/language_hack"
 if [ -d "$cl_old" ]; then
-  gt_new="$om_path/game_translations"
-  mkdir -p "$cl_cmds" "$gt_new"
+  mkdir -p "$cl_cmds"
   for f in "$cl_old"/active.* "$cl_old"/custom "$cl_old"/images; do
     [ -e "$f" ] && cp -rf "$f" "$cl_path/"
-  done
-  for f in "$cl_old"/patches.* "$cl_old"/patches_ips; do
-    [ -e "$f" ] && cp -rf "$f" "$gt_new/"
   done
 fi
 for cl_unfile in "$installpath/hmod/uninstall-om-language-hack"* \
