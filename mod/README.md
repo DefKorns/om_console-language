@@ -1,3 +1,5 @@
+# Options Menu - Console Language
+
 **This addon requires [DefKorns' fork of the Options Menu](https://github.com/DefKorns/OptionsMenu/releases) v2.1.0 or newer.**
 
 [![English Translation](https://hakchiresources.com/wp-content/uploads/2018/09/shonen_hvcj-150x150.png)](https://hakchiresources.com/wp-content/uploads/2018/09/shonen_hvcj.png)
@@ -9,10 +11,12 @@ English is built in. The other languages come either as separate hmods from that
 Each firmware keeps its own language, so multi-booting needs no `.hsqs`: hakchi switches firmware and the choice follows it.
 
 ### Credits
+
 * Advokaten (Original HMODS and Idea)
 * DefKorns (Developer)
 
 ### Thanks to
+
 * bslenul
 * CompCom
 * darkdev1

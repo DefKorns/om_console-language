@@ -1,4 +1,5 @@
 # OM Console Language
+
 **This addon requires [DefKorns' fork of the Options Menu](https://github.com/DefKorns/OptionsMenu/releases) v2.1.0 or newer.**
 
 ![English Translation](https://hakchiresources.com/wp-content/uploads/2018/09/shonen_hvcj.png)
@@ -16,6 +17,7 @@ Open **Console Language** in the Options Menu, pick a language and leave the men
 On the Japanese systems, **Rōmaji titles** shows the games' names in rōmaji instead of kana and kanji. It reboots the console to apply and works the same way to turn off.
 
 ## Building
+
 ```sh
 git submodule update --init
 make
@@ -31,10 +33,12 @@ Bug reports and ideas are welcome in the [issues](https://github.com/DefKorns/om
 - Everything else follows the Options Menu's [code style](https://github.com/DefKorns/OptionsMenu#code-style).
 
 ## Credits
+
 * Advokaten (Original HMODS and Idea)
 * DefKorns (Developer)
 
 ## Thanks to
+
 * bslenul
 * CompCom
 * darkdev1
