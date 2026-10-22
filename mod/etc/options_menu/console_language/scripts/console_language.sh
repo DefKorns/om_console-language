@@ -30,7 +30,7 @@ clSyncPreinit() {
 }
 
 clReloadLater() {
-  omSplash "$1_LINE1" CL_RELOADING
+  omLoading "$1_LINE1" CL_RELOADING
   shift
   omReloadMenuLater sh "$cl_home/scripts/console_language.sh" reload "$@"
 }
