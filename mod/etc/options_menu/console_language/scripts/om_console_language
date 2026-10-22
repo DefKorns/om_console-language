@@ -52,6 +52,8 @@ shonen | hvc | shvc)
   ;;
 esac
 
+# the network check can take a few seconds
+omLoading
 if hasInternet; then
   clShow c0010_Download
 else
