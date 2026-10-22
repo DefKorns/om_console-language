@@ -1,4 +1,4 @@
-**This addon requires [DefKorns' fork of the Options Menu](https://github.com/DefKorns/OptionsMenu/releases) v2.0.0-beta2 or newer.**
+**This addon requires [DefKorns' fork of the Options Menu](https://github.com/DefKorns/OptionsMenu/releases) v2.1.0 or newer.**
 
 [![English Translation](https://hakchiresources.com/wp-content/uploads/2018/09/shonen_hvcj-150x150.png)](https://hakchiresources.com/wp-content/uploads/2018/09/shonen_hvcj.png)
 
