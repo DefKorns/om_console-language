@@ -1,12 +1,5 @@
-CL_TITLE=Idioma da Consola
 CL_DOWNLOAD=Transferir mais idiomas
-CL_REVERT=Repor japonês
-CL_APPLYING_LINE1=A Aplicar o Idioma
-CL_RELOADING=A Recarregar o Menu . . .
-CL_REVERTING_LINE1=A Repor o Japonês
-CL_RESTORE=Repor os idiomas originais
-CL_RESTORING_LINE1=A repor os idiomas originais
-CL_NOT_FOUND=Este idioma não está disponível nesta consola.
+CL_RELOADING=A Recarregar o Menu
 CL_DOWNLOADING=A transferir idiomas...
 CL_DOWNLOADED=Transferência concluída. Volta a abrir este menu para veres os novos idiomas.
 CL_REPLACE_CONFIRM=Já instalado. Transferir e substituir?

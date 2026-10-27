@@ -28,6 +28,8 @@ pre_initd="$rootfs/etc/preinit.d"
 if [ -f "$cl_path/scripts/cl_functions" ]; then
   source "$cl_path/scripts/cl_functions"
   clInit
+  [ -z "$cl_code" ] || clResetRussian
+  clJapanese && echo ja_JPN >"$mountpoint/var/lib/clover/profiles/0/lang.txt"
   rm -f "$mountpoint/var/console_language_ui"
   clUmountLang
   clUmountRomaji
@@ -35,7 +37,7 @@ if [ -f "$cl_path/scripts/cl_functions" ]; then
 fi
 
 del "$pre_initd/b8020_console_language" "$pre_initd/p8020_console_language"
-del "$lang_cmds/c0001_ConsoleLanguage" "$lang_cmds/c0001_DownloadLanguages" "$lang_cmds/c9010_ConsoleLanguage"
+del "$lang_cmds/c0001_ConsoleLanguage" "$lang_cmds/c0001_DownloadLanguages" "$lang_cmds/c0001_Romaji" "$lang_cmds/c9010_ConsoleLanguage"
 # the separator is shared with the other language addons
 ls "$lang_cmds"/c000[1-9]_[!s]* >/dev/null 2>&1 || del "$lang_cmds/c0002_separator"
 del "$cl_path"

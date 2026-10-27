@@ -22,43 +22,4 @@ clInit
 
 # writes go through "/" ($cl_home); the preinit reads the same files from $rootfs ($cl_dir)
 cl_home="$options_menu/console_language"
-cl_cmds="$cl_home/commands"
 cl_url="https://github.com/DefKorns/om_console-language-packs/releases/download/languages-v1"
-
-# one entry per language installed for this firmware, by the download entry or a language hmod
-clMenuEntries() {
-  local lang code lang_code cmd n=200
-  rm -f "$cl_cmds/"c02[0-9][0-9]_*
-  for lang in "$cl_home/custom/$cl_pack"/*; do
-    [ -f "$lang/name" ] || continue
-    code="${lang##*/}"
-    clSkipCode "$code" && continue
-    cmd="$cl_cmds/c0${n}_$code"
-    printf '%s\n' \
-      "COMMAND_NAME=$(cat "$lang/name")" \
-      "COMMAND_TYPE=EXTERNAL" "RESTART_UI=FALSE" \
-      "COMMAND_STR=sh %script_dir%/console_language.sh apply $code" >"$cmd"
-    # the language in use has its files bound, so it can't be deleted
-    if [ "$code" = "$cl_code" ]; then
-      echo "DELETE_BLOCKED_KEY=CL_DELETE_IN_USE" >>"$cmd"
-    else
-      printf '%s\n' \
-        "DELETE_STR=sh %script_dir%/console_language.sh delete $code; sh %script_dir%/om_console_language" \
-        "DELETE_CONFIRM_KEY=CL_DELETE_CONFIRM" >>"$cmd"
-    fi
-    lang_code="$(clFlagLang "$code")"
-    if [ -f "$cl_home/images/preview_lang_$lang_code.png" ]; then
-      echo "PREVIEW_IMAGE=/etc/options_menu/console_language/images/preview_lang_$lang_code.png" >>"$cmd"
-    elif [ -f "$cl_home/images/$code.png" ]; then
-      echo "PREVIEW_IMAGE=/etc/options_menu/console_language/images/$code.png" >>"$cmd"
-    elif [ -f "$options_menu/images/preview_lang_$lang_code.png" ]; then
-      echo "PREVIEW_IMAGE=/etc/options_menu/images/preview_lang_$lang_code.png" >>"$cmd"
-    fi
-    if [ -f "$cl_home/images/flag_${lang_code}_small.png" ]; then
-      echo "ROW_ICON=/etc/options_menu/console_language/images/flag_${lang_code}_small.png" >>"$cmd"
-    elif [ -f "$options_menu/images/flag_${lang_code}_small.png" ]; then
-      echo "ROW_ICON=/etc/options_menu/images/flag_${lang_code}_small.png" >>"$cmd"
-    fi
-    n=$((n + 1))
-  done
-}

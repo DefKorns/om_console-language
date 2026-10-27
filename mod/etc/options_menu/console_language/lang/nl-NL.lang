@@ -1,12 +1,5 @@
-CL_TITLE=Consoletaal
 CL_DOWNLOAD=Meer talen downloaden
-CL_REVERT=Terug naar Japans
-CL_APPLYING_LINE1=Taal wordt toegepast
-CL_RELOADING=Menu wordt herladen . . .
-CL_REVERTING_LINE1=Japans wordt hersteld
-CL_RESTORE=Oorspronkelijke talen herstellen
-CL_RESTORING_LINE1=Oorspronkelijke talen herstellen
-CL_NOT_FOUND=Deze taal is niet beschikbaar op deze console.
+CL_RELOADING=Menu wordt herladen
 CL_DOWNLOADING=Talen worden gedownload...
 CL_DOWNLOADED=Download voltooid. Open dit menu opnieuw om de nieuwe talen te zien.
 CL_REPLACE_CONFIRM=Al geïnstalleerd. Downloaden en vervangen?

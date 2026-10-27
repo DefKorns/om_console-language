@@ -44,8 +44,8 @@ if [ -s "$dl_list" ]; then
       "COMMAND_TYPE=DOWNLOAD" \
       "COMMAND_STR=sh %script_dir%/console_language.sh install $code" >"$cmd"
     [ -d "$cl_home/custom/$cl_pack/$code" ] && echo "CONFIRM_KEY=CL_REPLACE_CONFIRM" >>"$cmd"
-    # with the firmware menu this is where a language is deleted; the one in use stays
-    if [ -n "$cl_native" ] && [ -d "$cl_home/custom/$cl_pack/$code" ]; then
+    # this is where a language is deleted; the one in use stays
+    if [ -d "$cl_home/custom/$cl_pack/$code" ]; then
       if [ "$(clNativeCode "$code")" = "$cl_code" ]; then
         echo "DELETE_BLOCKED_KEY=CL_DELETE_IN_USE" >>"$cmd"
       else

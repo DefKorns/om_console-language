@@ -53,8 +53,9 @@ local CL_DIR = "/etc/options_menu/console_language/"
 local CL_NATIVE = "/var/console_language_native/"
 local CL_LIST = CL_NATIVE .. "list"
 local CL_UI = "/var/console_language_ui"
-local clIsNes = FileUtils.fileExists(CL_NATIVE .. "strings/usa_en/strings.json")
-local CL_ACTIVE = CL_DIR .. (clIsNes and "active.nes" or "active.snes")
+local clIsHvc = system.is_hvc()
+local clIsNes = FileUtils.fileExists(CL_NATIVE .. "strings/usa_en/strings.json") and not clIsHvc
+local CL_ACTIVE = CL_DIR .. (string.match(FileUtils.fileExists(CL_NATIVE .. "active") and FileUtils.readFile(CL_NATIVE .. "active") or "", "%S+") or "active.snes")
 
 local function clWriteFile(path, text)
     if mcp.write_file_atomic then
@@ -380,7 +381,11 @@ function sys_option_languages.start(arg_1_0)
 
     local var_1_2, var_1_3, var_1_4 = Localization.getLocale()
 
-    if system.is_nes() then
+    if clIsHvc then
+        store.language_selected = true
+    end
+
+    if system.is_nes() or system.is_hvc() then
         if store.language_selected then
             local var_1_5
             local var_1_6

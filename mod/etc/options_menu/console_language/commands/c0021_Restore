@@ -1,4 +1,0 @@
-COMMAND_NAME=CL_RESTORE
-COMMAND_TYPE=EXTERNAL
-RESTART_UI=FALSE
-COMMAND_STR=sh %script_dir%/console_language.sh revert

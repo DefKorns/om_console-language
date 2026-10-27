@@ -30,19 +30,11 @@ clAfterChange() {
   clSyncPreinit
 }
 
-clReloadLater() {
-  omLoading "$1_LINE1" CL_RELOADING
-  shift
-  omReloadMenuLater sh "$cl_home/scripts/console_language.sh" reload "$@"
-}
-
 # runs from omReloadMenu, with the UI stopped
 clReload() {
   clUmountRomaji
   clUmountLang
   case "$1" in
-  apply) echo "$2" >"$cl_home/active.$cl_system" ;;
-  revert) rm -f "$cl_home/active.$cl_system" ;;
   romaji-on) : >"$cl_home/romaji.$cl_system" ;;
   romaji-off) rm -f "$cl_home/romaji.$cl_system" ;;
   esac
@@ -54,39 +46,22 @@ clReload() {
   fontFix
 }
 
-clFail() {
-  omSplash "$1"
-  sleep 3
-  sh "$om_scripts/ResumeUI.sh"
-  exit 1
-}
-
-clAvailable() {
-  local builtin
-  if [ -f "$cl_dir/custom/$cl_pack/$1/strings.lng" ] || [ -d "$cl_dir/custom/$cl_pack/$1/strings" ]; then
-    return 0
-  fi
-  builtin="$(clBuiltin "$1")" && [ -f "$builtin" ]
-}
-
-clApply() {
-  clAvailable "$1" || clFail CL_NOT_FOUND
-  clReloadLater CL_APPLYING apply "$1"
-}
-
-clRevert() {
-  case "$cl_system" in
-  shonen | hvc | shvc) clReloadLater CL_REVERTING revert ;;
-  *) clReloadLater CL_RESTORING revert ;;
-  esac
-}
-
+# runs in the background: the menu has to be gone before the splash, which stays on screen until the reload
 clRomaji() {
-  if [ -f "$cl_home/romaji.$cl_system" ]; then
-    clReloadLater CL_ROMAJI_OFF romaji-off
+  local state=on
+  if clRomajiOn; then
+    state=off
+    rm -f "$cl_home/romaji.$cl_system"
   else
-    clReloadLater CL_ROMAJI_ON romaji-on
+    : >"$cl_home/romaji.$cl_system"
   fi
+  while pidof options >/dev/null; do
+    usleep 100000
+  done
+  om_loading_keys="CL_ROMAJI_$(echo "$state" | tr '[:lower:]' '[:upper:]')_LINE1 CL_RELOADING"
+  # shellcheck disable=SC2086
+  omSplash $om_loading_keys
+  omReloadMenuLater sh "$cl_home/scripts/console_language.sh" reload "romaji-$state"
 }
 
 clRomajiState() {
@@ -120,8 +95,7 @@ clFetch() {
 # the menu closes after a delete and the entry relaunches it, so this never fails;
 # the language in use is blocked by the menu, this is the safety net
 clDelete() {
-  [ -n "$1" ] && [ "$1" != "$cl_code" ] || return 0
-  [ -n "$cl_native" ] && [ "$(clNativeCode "$1")" = "$cl_code" ] && return 0
+  [ -n "$1" ] && [ "$(clNativeCode "$1")" != "$cl_code" ] || return 0
   rm -rf "$cl_home/custom/$cl_pack/$1" "$cl_home/custom/$cl_pack/$1.new"
   clAfterChange
 }
@@ -132,7 +106,7 @@ clInstall() {
   local stage="/tmp/cl_stage"
   trap clAbort TERM INT HUP
   translate CL_DOWNLOADING
-  if [ "$1" = "$cl_code" ]; then
+  if [ "$(clNativeCode "$1")" = "$cl_code" ]; then
     rm -rf "$stage" && mkdir -p "$stage"
     clFetch "$cl_pack-$1.tar.gz" "$stage" || {
       rm -rf "$stage"
@@ -144,7 +118,6 @@ clInstall() {
     translate CL_REPLACE_AT_REBOOT
   else
     clFetch "$cl_pack-$1.tar.gz" "$cl_home" || exit 1
-    clMenuEntries
     clAfterChange
     translate CL_DOWNLOADED
   fi
@@ -193,7 +166,6 @@ clInstallAll() {
   omDownloadAll "$pending" clInstalled 2
   rc=$?
   rm -f "$pending"
-  clMenuEntries
   clAfterChange
   if [ -n "$cl_failed" ]; then
     translate CL_FAILED
@@ -205,8 +177,6 @@ clInstallAll() {
 }
 
 case "$1" in
-apply) clApply "$2" ;;
-revert) clRevert ;;
 romaji) clRomaji ;;
 reload) clReload "$2" "$3" ;;
 delete) clDelete "$2" ;;

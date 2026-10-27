@@ -42,7 +42,6 @@ done
 # om-language-hack state, copied before its uninstall wipes the folder
 cl_old="$om_path/language_hack"
 if [ -d "$cl_old" ]; then
-  mkdir -p "$cl_cmds"
   for f in "$cl_old"/active.* "$cl_old"/custom "$cl_old"/images; do
     [ -e "$f" ] && cp -rf "$f" "$cl_path/"
   done
@@ -55,10 +54,10 @@ done
 # earlier boot script names; the current one is copied below only while a language or rōmaji is on
 del "$pre_initd/b8020_console_language" "$p_file"
 
-# earlier layouts of the language screen
-del "$cl_cmds"/c000[0-7]_* "$cl_cmds"/_c000[0-7]_* "$cl_cmds"/c01[0-9][0-9]_* "$cl_cmds"/c88[0-9][0-9]_* "$cl_cmds"/_c88[0-9][0-9]_*
-# the entry sits first in the Language screen now; its separator is shared with the other language addons
-del "$lang_cmds/c9010_ConsoleLanguage"
+# the submenu of earlier versions
+del "$cl_cmds"
+# earlier entries of the Language screen; its separator is shared with the other language addons
+del "$lang_cmds/c9010_ConsoleLanguage" "$lang_cmds/c0001_ConsoleLanguage"
 ls "$lang_cmds"/c90[1-9]* >/dev/null 2>&1 || del "$lang_cmds/c9000_separator"
 
 # the title font comes from Font Remount now

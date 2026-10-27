@@ -1,12 +1,5 @@
-CL_TITLE=本体の言語
 CL_DOWNLOAD=言語を追加ダウンロード
-CL_REVERT=日本語に戻す
-CL_APPLYING_LINE1=言語を適用中
-CL_RELOADING=メニューを再読み込み中 . . .
-CL_REVERTING_LINE1=日本語に戻しています
-CL_RESTORE=元の言語に戻す
-CL_RESTORING_LINE1=元の言語に戻しています
-CL_NOT_FOUND=この言語は本体で利用できません。
+CL_RELOADING=メニューを再読み込み中
 CL_DOWNLOADING=言語をダウンロードしています...
 CL_DOWNLOADED=ダウンロード完了。メニューを開き直すと新しい言語が表示されます。
 CL_REPLACE_CONFIRM=インストール済みです。ダウンロードして置き換えますか？

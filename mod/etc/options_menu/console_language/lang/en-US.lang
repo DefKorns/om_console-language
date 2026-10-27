@@ -1,12 +1,5 @@
-CL_TITLE=Console Language
 CL_DOWNLOAD=Download more languages
-CL_REVERT=Revert to Japanese
-CL_APPLYING_LINE1=Applying Language
-CL_RELOADING=Reloading the Menu . . .
-CL_REVERTING_LINE1=Restoring Japanese
-CL_RESTORE=Restore the original languages
-CL_RESTORING_LINE1=Restoring the original languages
-CL_NOT_FOUND=This language isn't available on this console.
+CL_RELOADING=Reloading the Menu
 CL_DOWNLOADING=Downloading languages...
 CL_DOWNLOADED=Download complete. Reopen this menu to see the new languages.
 CL_REPLACE_CONFIRM=Already installed. Download and replace it?
