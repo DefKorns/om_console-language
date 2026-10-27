@@ -27,7 +27,7 @@ make
 
 The language packs and their build live in [om_console-language-packs](https://github.com/DefKorns/om_console-language-packs), which only holds the releases.
 
-The Languages screen script of the SNES firmware menu is kept as source in [native-menu/](native-menu/), next to its compiled bytecode in `mod/etc/options_menu/console_language/assets/native/`. The console loads LuaJIT 2.0 bytecode, which the 2.1 that distros ship does not write, so rebuild it with `luajit -bs` from LuaJIT commit `2410b57fd466298e6a64a68986a6b696c23656ac`.
+The Languages screen script of the SNES firmware menu is kept as source in [native-menu/](native-menu/) and compiled during the build to the LuaJIT 2.0 bytecode the console loads, by `luajit-bc.sh` from [hmod-build](https://github.com/DefKorns/hmod-build). Building needs `git`, `gcc` and `make`; the first build fetches LuaJIT at a fixed commit into `out/luajit`.
 
 ## Contributing
 

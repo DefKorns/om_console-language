@@ -24,7 +24,7 @@ clSyncPreinit() {
   cp -f "$cl_home/preinit/p8020_console_language" "$mountpoint/etc/preinit.d/p8020_console_language"
 }
 
-# the installed languages changed: the firmware menu lists them from the next UI start
+# the installed languages changed: the firmware menu reads them again when its screen opens
 clAfterChange() {
   [ -n "$cl_native" ] && clNativeBuild "$cl_home"
   clSyncPreinit
