@@ -1,7 +1,7 @@
--- sys_option_languages.lua of the SNES UI (stock md5 927b4cd97f045ce30f73e50f50ef8550), decompiled and
--- changed so the Languages screen lists the Console Language languages; build.sh compiles it.
+-- sys_option_languages.lua of the SNES (stock md5 927b4cd9) and NES (3d3bae3b) UIs, decompiled and
+-- changed to list the Console Language languages
 require("/scripts/core/core.lua")
-require("/scripts/app/clover_autocancel.lua")
+pcall(require, "/scripts/app/clover_autocancel.lua")
 
 sys_option_languages = class(gui_container)
 
@@ -50,9 +50,42 @@ local var_0_0 = {
 
 local clBooted
 local CL_DIR = "/etc/options_menu/console_language/"
-local CL_LIST = "/var/console_language_native/list"
-local CL_ACTIVE = CL_DIR .. "active.snes"
+local CL_NATIVE = "/var/console_language_native/"
+local CL_LIST = CL_NATIVE .. "list"
 local CL_UI = "/var/console_language_ui"
+local clIsNes = FileUtils.fileExists(CL_NATIVE .. "strings/usa_en/strings.json")
+local CL_ACTIVE = CL_DIR .. (clIsNes and "active.nes" or "active.snes")
+
+local function clWriteFile(path, text)
+    if mcp.write_file_atomic then
+        mcp.write_file_atomic(path, text)
+
+        return
+    end
+
+    local file = io.open(path, "w")
+
+    if file then
+        file:write(text)
+        file:close()
+    end
+end
+
+local function clAutoCancel(name, screen)
+    if CloverAutoCancel then
+        CloverAutoCancel.Set(name, screen)
+    else
+        GUI:setAutoCancel(name, screen)
+    end
+end
+
+local function clPressed(direction)
+    if CloverPadUI then
+        return CloverPadUI.pressed[string.lower(direction)]
+    end
+
+    return GUI["is" .. direction .. "Pressed"](GUI)
+end
 
 -- one "code<TAB>name" per line, written by Console Language for the installed languages
 local function clReadList()
@@ -90,25 +123,26 @@ local clNames = {
 local clColumns
 local clStock = #var_0_0
 
--- the firmware's own jpn_ja is the ninth language; it is remembered like an extra because the
--- firmware only accepts its eight in lang.txt. The extras fill the shorter column first and are
--- read again every time the screen opens, so a download shows up without restarting the UI
+-- read again each time the screen opens; the extras fill the shorter column first, Japanese is built in on the SNES
 local function clLoadExtras()
     for i = #var_0_0, clStock + 1, -1 do
         var_0_0[i] = nil
     end
 
     clColumns = {
-        {"English", "French", "German", "Spanish", "Japanese"},
+        {"English", "French", "German", "Spanish"},
         {"Italian", "Dutch", "Portuguese", "Russian"}
     }
 
-    var_0_0[#var_0_0 + 1] = {
-        language = "ja",
-        caption = "Japanese",
-        region = PLATFORM_REGION_JAPAN,
-        extra = true
-    }
+    if not clIsNes then
+        table.insert(clColumns[1], "Japanese")
+        var_0_0[#var_0_0 + 1] = {
+            language = "ja",
+            caption = "Japanese",
+            region = PLATFORM_REGION_JAPAN,
+            extra = true
+        }
+    end
 
     for _, entry in ipairs(clReadList()) do
         var_0_0[#var_0_0 + 1] = entry
@@ -155,7 +189,15 @@ end
 local function clLabelOf(element)
     local node = element:getChildByName("Label")
 
-    return node and node:getAllComponents()[1]
+    if not node then
+        return
+    end
+
+    if node.getAllComponents then
+        return node:getAllComponents()[1]
+    end
+
+    return node:getComponent(LabelComponent)
 end
 
 -- the scene declares the slots of a column in "row"; the first-run screen adds a confirm
@@ -444,7 +486,7 @@ function sys_option_languages.activate(arg_5_0)
     gui_container.activate(arg_5_0)
 
     if not arg_5_0.isFirstMode then
-        CloverAutoCancel.Set("sys_option_languages", arg_5_0)
+        clAutoCancel("sys_option_languages", arg_5_0)
     end
 end
 
@@ -460,7 +502,7 @@ end
 
 function sys_option_languages.onContainerCanceled(arg_10_0, arg_10_1)
     if not arg_10_0.isFirstMode then
-        CloverAutoCancel.Set("sys_option_languages", nil)
+        clAutoCancel("sys_option_languages", nil)
         Main:toHomeMenu()
 
         if arg_10_0.cancelSound then
@@ -482,7 +524,7 @@ function sys_option_languages.onElementCommand(arg_11_0, arg_11_1, arg_11_2)
             local base = (col - 1) * clStride
 
             if row <= clRows then
-                if CloverPadUI.pressed.down and row == clLastRow(col, arg_11_0.clOffset, clRows) then
+                if clPressed("Down") and row == clLastRow(col, arg_11_0.clOffset, clRows) then
                     if arg_11_0.clOffset < clMaxOffset(clRows) then
                         arg_11_0.clOffset = arg_11_0.clOffset + 1
                         clRefresh(arg_11_0, clStride, clRows)
@@ -501,7 +543,7 @@ function sys_option_languages.onElementCommand(arg_11_0, arg_11_1, arg_11_2)
 
                         return true
                     end
-                elseif CloverPadUI.pressed.up and row == 1 then
+                elseif clPressed("Up") and row == 1 then
                     if arg_11_0.clOffset > 0 then
                         arg_11_0.clOffset = arg_11_0.clOffset - 1
                         clRefresh(arg_11_0, clStride, clRows)
@@ -514,7 +556,7 @@ function sys_option_languages.onElementCommand(arg_11_0, arg_11_1, arg_11_2)
 
                         return true
                     end
-                elseif CloverPadUI.pressed.left or CloverPadUI.pressed.right then
+                elseif clPressed("Left") or clPressed("Right") then
                     local other = 3 - col
                     local last = clLastRow(other, arg_11_0.clOffset, clRows)
 
@@ -577,8 +619,8 @@ function sys_option_languages.onButtonClick(arg_13_0, arg_13_1)
 
             if var_13_3.extra then
                 clApplyLocale(var_13_3)
-                mcp.write_file_atomic(CL_ACTIVE, var_13_3.language)
-                mcp.write_file_atomic(CL_UI, clUiLanguage(var_13_3.language))
+                clWriteFile(CL_ACTIVE, var_13_3.language)
+                clWriteFile(CL_UI, clUiLanguage(var_13_3.language))
             else
                 if FileUtils.fileExists(CL_ACTIVE) then
                     FileUtils.deleteFile(CL_ACTIVE)

@@ -50,7 +50,7 @@ clInit() {
   [ -f "$cl_dir/active.$cl_system" ] && cl_code="$(cat "$cl_dir/active.$cl_system")"
   cl_custom="$cl_dir/custom/$cl_pack/$cl_code"
   cl_native=""
-  if [ "$cl_system" = "snes" ]; then
+  if [ "$cl_system" = "snes" ] || [ "$cl_system" = "nes" ]; then
     clNativeInit
   fi
 }
@@ -66,6 +66,12 @@ clNativeInit() {
   sum="$(md5sum "$stock")"
   cl_native_script="$cl_assets/native/${sum%% *}.lua"
   [ -f "$cl_native_script" ] && cl_native=1
+  # the classic mechanism stores the pack, the firmware menu the language
+  if [ -n "$cl_native" ] && [ -n "$cl_code" ] && [ -d "$cl_custom" ]; then
+    cl_code="$(clNativeCode "$cl_code")"
+    echo "$cl_code" >"$cl_dir/active.$cl_system"
+    cl_custom="$cl_dir/custom/$cl_pack/$cl_code"
+  fi
   return 0
 }
 
@@ -96,21 +102,33 @@ clNativeBuild() {
   local stock="${squashfs:-/var/squashfs}${cl_strings#"$mountpoint"}"
   local strings="$cl_native_dir/strings"
   local lang name code file keep=""
+  local ext=lng
+  [ "$cl_system" = "nes" ] && ext=json
   mkdir -p "$strings"
   [ -d "$strings/eur_de" ] || cp -r "$stock/." "$strings/" || return 1
   : >"$cl_native_dir/list.new"
+  # the NES has no Japanese of its own
+  if [ "$cl_system" = "nes" ]; then
+    keep=" eur_ja"
+    if [ ! -d "$strings/eur_ja" ]; then
+      mkdir -p "$strings/eur_ja"
+      cp "$cl_assets/ja/nes.json" "$strings/eur_ja/strings.json"
+      rm -f "$mountpoint/var/copyleft/${cl_strings#"$mountpoint"/usr/share/}/eur_ja/strings.json"
+    fi
+    printf '%s\t%s\n' ja 日本語 >>"$cl_native_dir/list.new"
+  fi
   for lang in "$from/custom/$cl_pack"/*; do
     name="${lang##*/}"
     case "$name" in jpn_ja | *.new) continue ;; esac
-    file="$lang/strings/$(clNativeSlot "$name")/strings.lng"
+    file="$lang/strings/$(clNativeSlot "$name")/strings.$ext"
     [ -f "$lang/name" ] || continue
     [ -f "$file" ] || continue
     code="$(clNativeCode "$name")"
     keep="$keep eur_$code"
     if [ ! -d "$strings/eur_$code" ]; then
       mkdir -p "$strings/eur_$code"
-      cp "$file" "$strings/eur_$code/strings.lng"
-      rm -f "$mountpoint/var/copyleft/${cl_strings#"$mountpoint"/usr/share/}/eur_$code/strings.lng"
+      cp "$file" "$strings/eur_$code/strings.$ext"
+      rm -f "$mountpoint/var/copyleft/${cl_strings#"$mountpoint"/usr/share/}/eur_$code/strings.$ext"
     fi
     printf '%s\t%s\n' "$code" "$(cat "$lang/name")" >>"$cl_native_dir/list.new"
   done
