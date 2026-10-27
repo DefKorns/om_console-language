@@ -15,18 +15,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-# Usage: console_language.sh apply <code> | revert | romaji | reload <change> [code] | romaji-state | install <code> | installall | nonet
+# Usage: console_language.sh apply <code> | revert | romaji | reload <change> [code] | delete <code> | romaji-state | install <code> | installall | nonet
 source $mountpoint/etc/options_menu/console_language/scripts/cl_vars
 
 # the binds go in at boot, ahead of fontFix and copyleft
-# the boot script only exists while a language or rōmaji is on for some firmware
+# the boot script stays: the firmware menu needs it before any language is installed, and another firmware may need it
 clSyncPreinit() {
-  local dest="$mountpoint/etc/preinit.d/p8020_console_language"
-  if [ -n "$(find "$cl_home" -maxdepth 1 \( -name 'active.*' -o -name 'romaji.*' \))" ]; then
-    cp -f "$cl_home/preinit/p8020_console_language" "$dest"
-  else
-    rm -f "$dest"
-  fi
+  cp -f "$cl_home/preinit/p8020_console_language" "$mountpoint/etc/preinit.d/p8020_console_language"
+}
+
+# the installed languages changed: the firmware menu lists them from the next UI start
+clAfterChange() {
+  [ -n "$cl_native" ] && clNativeBuild "$cl_home"
+  clSyncPreinit
 }
 
 clReloadLater() {
@@ -120,7 +121,9 @@ clFetch() {
 # the language in use is blocked by the menu, this is the safety net
 clDelete() {
   [ -n "$1" ] && [ "$1" != "$cl_code" ] || return 0
+  [ -n "$cl_native" ] && [ "$(clNativeCode "$1")" = "$cl_code" ] && return 0
   rm -rf "$cl_home/custom/$cl_pack/$1" "$cl_home/custom/$cl_pack/$1.new"
+  clAfterChange
 }
 
 # the active language's files are in use: it goes to <code>.new, swapped in at boot
@@ -142,6 +145,7 @@ clInstall() {
   else
     clFetch "$cl_pack-$1.tar.gz" "$cl_home" || exit 1
     clMenuEntries
+    clAfterChange
     translate CL_DOWNLOADED
   fi
 }
@@ -190,6 +194,7 @@ clInstallAll() {
   rc=$?
   rm -f "$pending"
   clMenuEntries
+  clAfterChange
   if [ -n "$cl_failed" ]; then
     translate CL_FAILED
     echo "$cl_failed"

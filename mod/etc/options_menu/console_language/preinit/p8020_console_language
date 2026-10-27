@@ -15,8 +15,8 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 # Binds the language chosen for the booted firmware over jpn_ja (or over the
-# whole strings dir for custom packs), ahead of fontFix and copyleft. It sits in
-# /etc/preinit.d only while a language is applied on some firmware.
+# whole strings dir for custom packs), and the firmware menu's script on the SNES,
+# ahead of fontFix and copyleft.
 source "$rootfs/etc/options_menu/console_language/scripts/cl_functions"
 clInit
 clUiLang

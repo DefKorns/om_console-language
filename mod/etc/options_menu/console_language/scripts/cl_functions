@@ -49,6 +49,77 @@ clInit() {
   cl_code=""
   [ -f "$cl_dir/active.$cl_system" ] && cl_code="$(cat "$cl_dir/active.$cl_system")"
   cl_custom="$cl_dir/custom/$cl_pack/$cl_code"
+  cl_native=""
+  if [ "$cl_system" = "snes" ]; then
+    clNativeInit
+  fi
+}
+
+# the firmware's Languages screen lists the extra languages when I know its script by checksum
+clNativeInit() {
+  local base="${cl_strings%/strings}"
+  local stock="${squashfs:-/var/squashfs}${base#"$mountpoint"}/scripts/sys_option_languages.lua"
+  local sum
+  cl_native_dir="$mountpoint/var/console_language_native"
+  cl_native_target="$base/scripts/sys_option_languages.lua"
+  [ -f "$stock" ] || return 0
+  sum="$(md5sum "$stock")"
+  cl_native_script="$cl_assets/native/${sum%% *}.lua"
+  [ -f "$cl_native_script" ] && cl_native=1
+  return 0
+}
+
+# the locale code the screen script sets; the firmware looks for strings/eur_<code>
+clNativeCode() {
+  case "$1" in
+  eur_swe) echo sv ;;
+  eur_nor) echo no ;;
+  eur_gr) echo el ;;
+  por_br) echo pb ;;
+  *) echo "${1#*_}" ;;
+  esac
+}
+
+# the slot of a pack that holds its translation
+clNativeSlot() {
+  case "$1" in
+  por_br) echo eur_pt ;;
+  *) echo eur_ru ;;
+  esac
+}
+
+# stock strings plus one eur_<code> folder per installed language, and the list the script reads;
+# the packs are read from cl_dir at boot and from the live path afterwards. The folder is bound
+# into the UI, so after the first build I only add the missing languages and drop the removed ones
+clNativeBuild() {
+  local from="$1"
+  local stock="${squashfs:-/var/squashfs}${cl_strings#"$mountpoint"}"
+  local strings="$cl_native_dir/strings"
+  local lang name code file keep=""
+  mkdir -p "$strings"
+  [ -d "$strings/eur_de" ] || cp -r "$stock/." "$strings/" || return 1
+  : >"$cl_native_dir/list.new"
+  for lang in "$from/custom/$cl_pack"/*; do
+    name="${lang##*/}"
+    case "$name" in jpn_ja | *.new) continue ;; esac
+    file="$lang/strings/$(clNativeSlot "$name")/strings.lng"
+    [ -f "$lang/name" ] || continue
+    [ -f "$file" ] || continue
+    code="$(clNativeCode "$name")"
+    keep="$keep eur_$code"
+    if [ ! -d "$strings/eur_$code" ]; then
+      mkdir -p "$strings/eur_$code"
+      cp "$file" "$strings/eur_$code/strings.lng"
+      rm -f "$mountpoint/var/copyleft/${cl_strings#"$mountpoint"/usr/share/}/eur_$code/strings.lng"
+    fi
+    printf '%s\t%s\n' "$code" "$(cat "$lang/name")" >>"$cl_native_dir/list.new"
+  done
+  for lang in "$strings"/eur_*; do
+    name="${lang##*/}"
+    [ -d "$stock/$name" ] && continue
+    case "$keep " in *" $name "*) ;; *) rm -rf "$lang" ;; esac
+  done
+  mv "$cl_native_dir/list.new" "$cl_native_dir/list"
 }
 
 # the language code the Options Menu names its flags and previews by
@@ -62,19 +133,26 @@ clFlagLang() {
   esac
 }
 
-# the Options Menu follows the console language; /var is rebuilt at every boot
+# the Options Menu follows the console language; /var is rebuilt at every boot.
+# The file only says what the console really shows on the Japanese firmwares and with the firmware menu
 clUiLang() {
   local ui="$mountpoint/var/console_language_ui"
-  if [ -n "$cl_code" ]; then
+  if [ -n "$cl_code" ] && [ -n "$cl_native" ]; then
+    case "$cl_code" in
+    pb) echo pt_br >"$ui" ;;
+    *) echo "$cl_code" >"$ui" ;;
+    esac
+  elif [ -n "$cl_code" ] && { [ "$cl_system" = "shonen" ] || [ "$cl_system" = "hvc" ] || [ "$cl_system" = "shvc" ]; }; then
     clFlagLang "$cl_code" >"$ui"
   else
     rm -f "$ui"
   fi
 }
 
-# the Japanese firmwares already have "Revert to Japanese"
+# the Japanese firmwares already have "Revert to Japanese", and the firmware menu has its own Japanese
 clSkipCode() {
   [ "$1" = "jpn_ja" ] || return 1
+  [ -n "$cl_native" ] && return 0
   case "$cl_system" in shonen | hvc | shvc) return 0 ;; esac
   return 1
 }
@@ -96,9 +174,41 @@ clUnbind() {
   grep -q " $1 " /proc/mounts && umount "$1" 2>/dev/null
 }
 
+# with the firmware menu a theme's own fonts stay: only the stock ones, or mine, are replaced
+clFontReplaceable() {
+  [ -z "$cl_native" ] && return 0
+  cmp -s "$1" "$2" || cmp -s "$1" "${squashfs:-/var/squashfs}${1#"$mountpoint"}"
+}
+
+# the stock Japanese fonts lack accented glyphs and the UI dies on them (C8);
+# same targets fontFix binds, which wins for fonts it provides
+clFontMounts() {
+  local f target
+  local fonts="${cl_strings%/strings}/fonts"
+  [ "$cl_system" = "hvc" ] && fonts="$fonts/hvc"
+  [ "$cl_system" = "nes" ] && fonts="$fonts/nes"
+  # a pack can bring its own fonts (Japanese); the USA/EUR firmwares name all but copyright *.font
+  local font_src="$cl_assets/fonts"
+  [ -d "$cl_custom/fonts" ] && font_src="$cl_custom/fonts"
+  for f in "$font_src"/*.fnt; do
+    [ "${f##*/}" = "debug.fnt" ] && [ "$font_src" = "$cl_assets/fonts" ] && [ "$cl_system" != "shonen" ] && continue
+    for target in "$fonts/${f##*/}" "$fonts/$(basename "$f" .fnt).font"; do
+      [ -f "$target" ] || continue
+      clFontReplaceable "$target" "$f" && echo "$f $target"
+      break
+    done
+  done
+}
+
 # one line per bind: "<source> <target>", from the active state
 clMounts() {
   local f
+  if [ -n "$cl_native" ]; then
+    echo "$cl_native_script $cl_native_target"
+    echo "$cl_native_dir/strings $cl_strings"
+    clFontMounts
+    return 0
+  fi
   [ -z "$cl_code" ] && return
   if [ -f "$cl_custom/strings.lng" ]; then
     echo "$cl_custom/strings.lng $cl_jpn"
@@ -114,21 +224,7 @@ clMounts() {
   else
     echo "$(clBuiltin "$cl_code") $cl_jpn"
   fi
-  # the stock Japanese fonts lack accented glyphs and the UI dies on them (C8);
-  # same targets fontFix binds, which wins for fonts it provides
-  local fonts="${cl_strings%/strings}/fonts"
-  [ "$cl_system" = "hvc" ] && fonts="$fonts/hvc"
-  [ "$cl_system" = "nes" ] && fonts="$fonts/nes"
-  # a pack can bring its own fonts (Japanese); the USA/EUR firmwares name all but copyright *.font
-  local font_src="$cl_assets/fonts"
-  [ -d "$cl_custom/fonts" ] && font_src="$cl_custom/fonts"
-  local target
-  for f in "$font_src"/*.fnt; do
-    [ "${f##*/}" = "debug.fnt" ] && [ "$font_src" = "$cl_assets/fonts" ] && [ "$cl_system" != "shonen" ] && continue
-    for target in "$fonts/${f##*/}" "$fonts/$(basename "$f" .fnt).font"; do
-      [ -f "$target" ] && echo "$f $target" && break
-    done
-  done
+  clFontMounts
   if [ "$cl_system" = "shonen" ]; then
     for f in "$cl_assets"/sprites/*.png; do
       echo "$f ${cl_strings%/strings}/sprites/${f##*/}"
@@ -148,6 +244,7 @@ clSwapStaged() {
 clMountLang() {
   local src
   local dst
+  [ -n "$cl_native" ] && clNativeBuild "$cl_dir"
   clMounts | while read -r src dst; do
     clBind "$src" "$dst"
   done
@@ -156,6 +253,9 @@ clMountLang() {
 clUmountLang() {
   local src
   local dst
+  [ -n "$cl_native" ] && clStringMounts | while read -r dst; do
+    umount "$dst"
+  done
   clMounts | while read -r src dst; do
     clUnbind "$dst"
   done

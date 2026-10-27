@@ -95,6 +95,6 @@ done
 
 transfer_default
 
-[ -n "$(find "$cl_path" -maxdepth 1 \( -name 'active.*' -o -name 'romaji.*' \))" ] && cp -f "$cl_path/preinit/p8020_console_language" "$p_file"
+cp -f "$cl_path/preinit/p8020_console_language" "$p_file"
 
 return 1

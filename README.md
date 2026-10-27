@@ -14,6 +14,8 @@ Each firmware keeps its own language, so multi-booting needs no `.hsqs`: hakchi 
 
 Open **Console Language** in the Options Menu, pick a language and the menu reloads with it applied, with no reboot. *Download more languages* shows up when the console is online.
 
+On the USA and EUR SNES the languages you download are listed in the console's own Languages screen instead, after the eight it ships with; the list scrolls, and the choice is kept across reboots. The Options Menu then only downloads and deletes them. A firmware whose language script this release doesn't know falls back to choosing from the Options Menu.
+
 On the Japanese systems, **Rōmaji titles** shows the games' names in rōmaji instead of kana and kanji. It is independent of the applied language and, like the languages, reloads the menu instead of rebooting.
 
 ## Building
@@ -24,6 +26,8 @@ make
 ```
 
 The language packs and their build live in [om_console-language-packs](https://github.com/DefKorns/om_console-language-packs), which only holds the releases.
+
+The Languages screen script of the SNES firmware menu is kept as source in [native-menu/](native-menu/), next to its compiled bytecode in `mod/etc/options_menu/console_language/assets/native/`. The console loads LuaJIT 2.0 bytecode, which the 2.1 that distros ship does not write, so rebuild it with `luajit -bs` from LuaJIT commit `2410b57fd466298e6a64a68986a6b696c23656ac`.
 
 ## Contributing
 
