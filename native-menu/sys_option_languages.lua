@@ -172,6 +172,59 @@ local function clLastRow(col, offset, rows)
     return math.max(0, math.min(rows, #clColumns[col] - offset))
 end
 
+local CL_BAR_WIDTH = 8
+
+local function clBarPart(parent, width, height, r, g, b, a)
+    local node = WorldNode:create()
+    local sprite = SpriteComponent:create()
+
+    sprite:setSize(width, height)
+    sprite:setColor(r, g, b, a)
+    node:attachComponent(sprite)
+    parent:addChildNode(node)
+
+    return node
+end
+
+-- a track and a thumb right of the grid, placed from the slots themselves; only when the entries overflow.
+-- A sprite is positioned by its bottom edge.
+local function clBarUpdate(self, stride, rows)
+    local maxOffset = clMaxOffset(rows)
+
+    if maxOffset == 0 then
+        return
+    end
+
+    local first = self.elementArray[1]
+    local second = self.elementArray[2]
+    local last = self.elementArray[rows]
+    local right = self.elementArray[stride + 1]
+
+    if not (first and second and last and right) then
+        return
+    end
+
+    local x = right:getLocalPositionX() + 0.94 * (right:getLocalPositionX() - first:getLocalPositionX())
+    local step = first:getLocalPositionY() - second:getLocalPositionY()
+    local top = first:getLocalPositionY() + 0.4 * step
+    local bottom = last:getLocalPositionY() - 0.4 * step
+    local track = math.abs(top - bottom)
+    local thumb = math.max(24, track * rows / (maxOffset + rows))
+
+    if not self.clBar then
+        self.clBar = {
+            track = clBarPart(self.elements, CL_BAR_WIDTH, track, 1, 1, 1, 0.25),
+            thumb = clBarPart(self.elements, CL_BAR_WIDTH, thumb, 1, 1, 1, 1)
+        }
+        self.clBar.track:setLocalPosition(x, bottom)
+    end
+
+    local frac = self.clOffset / maxOffset
+    local y = top - (track - thumb) * frac - thumb
+
+    self.clBar.thumb:setLocalPosition(x, y)
+end
+
 -- every slot shows the entry of its column at the shared offset; slots without one are disabled
 local function clRefresh(self, stride, rows)
     local current = clCurrentCaption()
@@ -209,6 +262,8 @@ local function clRefresh(self, stride, rows)
     if selected then
         self.radiogroup:selectButton(selected)
     end
+
+    clBarUpdate(self, stride, rows)
 end
 
 local function clScrollIntoView(self, rows)
