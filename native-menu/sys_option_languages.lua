@@ -87,25 +87,36 @@ local clNames = {
     Portuguese = "Português (Europeu)",
     Russian = "Русский"
 }
-local clColumns = {
-    {"English", "French", "German", "Spanish", "Japanese"},
-    {"Italian", "Dutch", "Portuguese", "Russian"}
-}
+local clColumns
+local clStock = #var_0_0
 
 -- the firmware's own jpn_ja is the ninth language; it is remembered like an extra because the
--- firmware only accepts its eight in lang.txt
-var_0_0[#var_0_0 + 1] = {
-    language = "ja",
-    caption = "Japanese",
-    region = PLATFORM_REGION_JAPAN,
-    extra = true
-}
+-- firmware only accepts its eight in lang.txt. The extras fill the shorter column first and are
+-- read again every time the screen opens, so a download shows up without restarting the UI
+local function clLoadExtras()
+    for i = #var_0_0, clStock + 1, -1 do
+        var_0_0[i] = nil
+    end
 
--- the extras fill the shorter column first
-for _, entry in ipairs(clReadList()) do
-    var_0_0[#var_0_0 + 1] = entry
-    table.insert(clColumns[#clColumns[1] <= #clColumns[2] and 1 or 2], entry.caption)
+    clColumns = {
+        {"English", "French", "German", "Spanish", "Japanese"},
+        {"Italian", "Dutch", "Portuguese", "Russian"}
+    }
+
+    var_0_0[#var_0_0 + 1] = {
+        language = "ja",
+        caption = "Japanese",
+        region = PLATFORM_REGION_JAPAN,
+        extra = true
+    }
+
+    for _, entry in ipairs(clReadList()) do
+        var_0_0[#var_0_0 + 1] = entry
+        table.insert(clColumns[#clColumns[1] <= #clColumns[2] and 1 or 2], entry.caption)
+    end
 end
+
+clLoadExtras()
 
 -- the Options Menu names its languages like the flags: Brazilian Portuguese is pt_br
 local function clUiLanguage(code)
@@ -183,13 +194,24 @@ local function clBarPart(parent, width, height, r, g, b, a)
     node:attachComponent(sprite)
     parent:addChildNode(node)
 
-    return node
+    return node, sprite
 end
 
 -- a track and a thumb right of the grid, placed from the slots themselves; only when the entries overflow.
 -- A sprite is positioned by its bottom edge.
 local function clBarUpdate(self, stride, rows)
     local maxOffset = clMaxOffset(rows)
+    local bar = self.clBar
+
+    if bar then
+        for _, sprite in pairs(bar.sprites) do
+            if maxOffset == 0 then
+                sprite:disable()
+            else
+                sprite:enable()
+            end
+        end
+    end
 
     if maxOffset == 0 then
         return
@@ -211,18 +233,21 @@ local function clBarUpdate(self, stride, rows)
     local track = math.abs(top - bottom)
     local thumb = math.max(24, track * rows / (maxOffset + rows))
 
-    if not self.clBar then
-        self.clBar = {
-            track = clBarPart(self.elements, CL_BAR_WIDTH, track, 1, 1, 1, 0.25),
-            thumb = clBarPart(self.elements, CL_BAR_WIDTH, thumb, 1, 1, 1, 1)
+    if not bar then
+        local trackNode, trackSprite = clBarPart(self.elements, CL_BAR_WIDTH, track, 1, 1, 1, 0.25)
+        local thumbNode, thumbSprite = clBarPart(self.elements, CL_BAR_WIDTH, thumb, 1, 1, 1, 1)
+
+        bar = {
+            thumb = thumbNode,
+            thumbSprite = thumbSprite,
+            sprites = {trackSprite, thumbSprite}
         }
-        self.clBar.track:setLocalPosition(x, bottom)
+        self.clBar = bar
+        trackNode:setLocalPosition(x, bottom)
     end
 
-    local frac = self.clOffset / maxOffset
-    local y = top - (track - thumb) * frac - thumb
-
-    self.clBar.thumb:setLocalPosition(x, y)
+    bar.thumbSprite:setSize(CL_BAR_WIDTH, thumb)
+    bar.thumb:setLocalPosition(x, top - (track - thumb) * self.clOffset / maxOffset - thumb)
 end
 
 -- every slot shows the entry of its column at the shared offset; slots without one are disabled
@@ -378,6 +403,8 @@ end
 
 function sys_option_languages.activate(arg_5_0)
     local var_5_0, var_5_1, var_5_2 = Localization.getLocale()
+
+    clLoadExtras()
 
     local clStride, clRows = clGeometry(arg_5_0)
 
