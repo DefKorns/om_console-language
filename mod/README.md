@@ -8,7 +8,11 @@ Based on [Advokaten's](https://github.com/advokaten) *Shonen Jump Hack*, this ad
 
 English is built in. The other languages come either as separate hmods from that repository (`om_console-language_<system>_<code>`, one per console type; also in the hakchi-repo *Language Packs* tab), installed with hakchi like any other mod, or from the menu's *Download more languages*, which fetches the same files from the [languages-v1](https://github.com/DefKorns/om_console-language-packs/releases/tag/languages-v1) release of [om_console-language-packs](https://github.com/DefKorns/om_console-language-packs). The Famicom Mini's languages come with the addon.
 
+The game titles on the home screen use the extended `title.fnt` of **Font Remount**, so install it with this addon to see accented letters and the Rōmaji titles.
+
 Each firmware keeps its own language, so multi-booting needs no `.hsqs`: hakchi switches firmware and the choice follows it.
+
+On the Japanese systems, **Rōmaji titles** shows the games' names in rōmaji instead of kana and kanji. It is independent of the applied language and reloads the menu instead of rebooting.
 
 ## Credits
 

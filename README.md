@@ -12,9 +12,9 @@ The game titles on the home screen use the extended `title.fnt` of **Font Remoun
 
 Each firmware keeps its own language, so multi-booting needs no `.hsqs`: hakchi switches firmware and the choice follows it.
 
-Open **Console Language** in the Options Menu, pick a language and leave the menu. *Download more languages* shows up when the console is online.
+Open **Console Language** in the Options Menu, pick a language and the menu reloads with it applied, with no reboot. *Download more languages* shows up when the console is online.
 
-On the Japanese systems, **Rōmaji titles** shows the games' names in rōmaji instead of kana and kanji. It reboots the console to apply and works the same way to turn off.
+On the Japanese systems, **Rōmaji titles** shows the games' names in rōmaji instead of kana and kanji. It is independent of the applied language and, like the languages, reloads the menu instead of rebooting.
 
 ## Building
 
