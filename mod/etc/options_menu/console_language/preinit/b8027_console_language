@@ -1,0 +1,30 @@
+# shellcheck shell=sh disable=SC2154,SC3043,SC1090
+#  Copyright (c) 2026 DefKorns (https://defkorns.github.io/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# The rōmaji overlay goes on the games folder the UI reads, where the sync of Hakchi unmounts it.
+# cl_plain skips it for a plain bind.
+bind_games() {
+  local cl_lib="$rootfs/etc/options_menu/console_language/scripts/cl_functions"
+  [ -z "$gamepath" ] && return 0
+  if [ -z "$cl_plain" ] && [ -f "$cl_lib" ]; then
+    source "$cl_lib"
+    clInit
+    clBindGames "$1" "$2" || mount_bind "$1" "$2" || return 1
+  else
+    mount_bind "$1" "$2" || return 1
+  fi
+  repair_fonts "$1"
+}

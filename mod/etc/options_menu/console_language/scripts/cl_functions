@@ -305,29 +305,22 @@ clRebind() {
   clCopyleft
 }
 
-# Famicom titles in rōmaji: the desktop files go over the games folder as an overlay
-clGames() {
-  local storage first
-  storage="$(findGameStorage)"
-  if [ -n "$storage" ]; then
-    first="$(find "$storage" -maxdepth 2 -type d -name 'CLV-P*' 2>/dev/null | head -n 1)"
-    [ -n "$first" ] && dirname "$first" && return 0
-  fi
-  echo "$mountpoint$gamepath"
-}
-
+# Famicom titles in rōmaji: the desktop files go over the games folder the UI reads as an overlay,
+# which the sync of Hakchi unmounts; only the games the folder has get a title, or the UI would list the rest
 clRomajiOn() {
   [ -f "$cl_dir/romaji.$cl_system" ]
 }
 
-clMountRomaji() {
-  local games
-  clRomajiOn && [ -d "$cl_assets/desktop/$cl_system" ] || return 0
-  games="$(clGames)" && [ -n "$games" ] || return 0
-  mount -t overlayfs -o "lowerdir=$games,upperdir=$cl_assets/desktop/$cl_system" overlayfs "$games"
-}
-
-clUmountRomaji() {
-  local games
-  games="$(clGames)" && [ -n "$games" ] && clUnbind "$games"
+clBindGames() {
+  local up="$mountpoint/var/console_language_desktop"
+  local game
+  clRomajiOn && [ -d "$cl_assets/desktop/$cl_system" ] || return 1
+  rm -rf "$up"
+  mkdir -p "$up"
+  for game in "$cl_assets/desktop/$cl_system"/*; do
+    [ -d "$1/${game##*/}" ] && cp -r "$game" "$up/"
+  done
+  [ -n "$(ls "$up")" ] || return 1
+  mountpoint -q "$2" && { umount "$2" || umount -f "$2"; }
+  mount -t overlayfs -o "lowerdir=$1,upperdir=$up" overlayfs "$2"
 }

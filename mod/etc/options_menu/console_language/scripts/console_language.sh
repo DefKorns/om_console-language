@@ -22,6 +22,7 @@ source $mountpoint/etc/options_menu/console_language/scripts/cl_vars
 # the boot script stays: the firmware menu needs it before any language is installed, and another firmware may need it
 clSyncPreinit() {
   cp -f "$cl_home/preinit/p8020_console_language" "$mountpoint/etc/preinit.d/p8020_console_language"
+  cp -f "$cl_home/preinit/b8027_console_language" "$mountpoint/etc/preinit.d/b8027_console_language"
 }
 
 # the installed languages changed: the firmware menu reads them again when its screen opens
@@ -32,7 +33,6 @@ clAfterChange() {
 
 # runs from omReloadMenu, with the UI stopped
 clReload() {
-  clUmountRomaji
   clUmountLang
   case "$1" in
   romaji-on) : >"$cl_home/romaji.$cl_system" ;;
@@ -42,7 +42,6 @@ clReload() {
   clInit
   clUiLang
   clRebind
-  clMountRomaji
   fontFix
 }
 

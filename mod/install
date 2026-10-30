@@ -95,5 +95,6 @@ done
 transfer_default
 
 cp -f "$cl_path/preinit/p8020_console_language" "$p_file"
+cp -f "$cl_path/preinit/b8027_console_language" "$pre_initd/b8027_console_language"
 
 return 1
