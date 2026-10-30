@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Exec=/bin/clover-kachikachi-wr /var/squashfs/usr/share/games/CLV-P-HBAEJ/CLV-P-HBAEJ.nes  --guest-overscan-dimensions 0,0,9,3 --initial-fadein-durations 3,2 --volume 75 --enable-armet
+Path=/var/saves/CLV-P-HBAEJ
+Name=Dragon Ball 3: Goku Den
+Icon=/var/squashfs/usr/share/games/CLV-P-HBAEJ/CLV-P-HBAEJ.png
+
+[X-CLOVER Game]
+Code=CLV-P-HBAEJ
+TestID=104
+ID=0
+Players=1
+Simultaneous=0
+ReleaseDate=1989-10-27
+SaveCount=0
+SortRawTitle=dragon ball 3: goku den
+SortRawPublisher=BANDAI
+Copyright=Dragon Ball 3: Goku Den\n©Bird Studio / Shueisha / Toei Animation ©BANDAI NAMCO Entertainment Inc.

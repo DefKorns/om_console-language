@@ -46,6 +46,7 @@
 *.o
 [Dd]ebug*/
 [Rr]elease*/
+!release-notes/
 *.mode*
 *.app/
 *.pyc
@@ -494,5 +495,7 @@ ASALocalRun/
 
 # End of https://www.gitignore.io/api/git,osx,linux,windows,visualstudio,visualstudiocode,openframeworks+visualstudio
 out/
-Makefile
 default-strings.lng
+
+# compiled from native-menu/ by make
+mod/etc/options_menu/console_language/assets/native/

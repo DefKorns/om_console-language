@@ -1,0 +1,326 @@
+#!/bin/sh
+# shellcheck disable=SC2154,SC2034,SC3043
+#  Copyright (c) 2026 DefKorns (https://defkorns.github.io/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Console Language functions, sourced by the menu scripts (cl_vars) and by the boot
+# script while a language is applied. Self-contained: at boot the Options Menu may not be there yet.
+
+# read straight from the rootfs layer: "/" is an overlayfs and can't be an upperdir
+cl_dir="$rootfs/etc/options_menu/console_language"
+cl_assets="$cl_dir/assets"
+
+clInit() {
+  local share="$mountpoint/usr/share"
+  cl_system="$sftype"
+  cl_pack="$sftype"
+  cl_strings="$share/clover-ui/resources/strings"
+  case "$sftype" in
+  hvcj)
+    cl_system="shonen"
+    cl_pack="shonen"
+    cl_strings="$share/ui/hvc/resources/strings"
+    ;;
+  nes)
+    [ "$sfregion" = "jpn" ] && cl_system="hvc"
+    ;;
+  snes)
+    cl_strings="$share/ui/snes-$sfregion/resources/strings"
+    if [ "$sfregion" = "jpn" ]; then
+      cl_system="shvc"
+      cl_strings="$share/ui/shvc/resources/strings"
+    fi
+    ;;
+  esac
+  cl_code=""
+  [ -f "$cl_dir/active.$cl_system" ] && cl_code="$(cat "$cl_dir/active.$cl_system")"
+  cl_native=""
+  case "$cl_system" in snes | nes | hvc | shvc | shonen) clNativeInit ;; esac
+}
+
+# the firmware's Languages screen lists the extra languages when I know its script by checksum
+clNativeInit() {
+  local base="${cl_strings%/strings}"
+  local stock="${squashfs:-/var/squashfs}${base#"$mountpoint"}/scripts/sys_option_languages.lua"
+  local sum
+  cl_native_dir="$mountpoint/var/console_language_native"
+  cl_native_target="$base/scripts/sys_option_languages.lua"
+  [ -f "$stock" ] || return 0
+  sum="$(md5sum "$stock")"
+  cl_native_script="$cl_assets/native/${sum%% *}.lua"
+  [ -f "$cl_native_script" ] && cl_native=1
+  # the Famicom Mini and the Shonen Jump also need the menu bar to keep the language button
+  if [ -n "$cl_native" ] && { [ "$cl_system" = "hvc" ] || [ "$cl_system" = "shonen" ]; }; then
+    for sum in $(clNativeExtras | cut -d' ' -f1); do
+      [ -f "$sum" ] || cl_native=""
+    done
+  fi
+  case "$cl_code" in usa_en | eur_de | eur_es | eur_fr | eur_it | eur_nl | eur_pt | eur_ru)
+    if [ -n "$cl_native" ]; then
+      rm -f "$cl_dir/active.$cl_system"
+      cl_code=""
+    fi
+    ;;
+  esac
+  # the classic mechanism stores the pack, the firmware menu the language
+  if [ -n "$cl_native" ] && [ -n "$cl_code" ] && [ -d "$cl_dir/custom/$cl_pack/$cl_code" ]; then
+    cl_code="$(clNativeCode "$cl_code")"
+    echo "$cl_code" >"$cl_dir/active.$cl_system"
+  fi
+  return 0
+}
+
+# the locale code the screen script sets; the firmware looks for strings/eur_<code>
+clNativeCode() {
+  case "$1" in
+  eur_swe) echo sv ;;
+  eur_nor) echo no ;;
+  eur_gr) echo el ;;
+  por_br) echo pb ;;
+  *) echo "${1#*_}" ;;
+  esac
+}
+
+# stock strings plus one eur_<code> folder per installed language, and the list the script reads;
+# the packs are read from cl_dir at boot and from the live path afterwards. The folder is bound
+# into the UI, so after the first build I only add the missing languages and drop the removed ones
+clNativeBuild() {
+  local from="$1"
+  local stock="${squashfs:-/var/squashfs}${cl_strings#"$mountpoint"}"
+  local strings="$cl_native_dir/strings"
+  local lang name code file keep=""
+  local ext=lng
+  case "$cl_system" in nes | hvc) ext=json ;; esac
+  mkdir -p "$strings"
+  [ -n "$(ls "$strings")" ] || cp -r "$stock/." "$strings/" || return 1
+  if [ "$cl_system" = "hvc" ]; then
+    for lang in "$cl_assets/strings"/*; do
+      name="${lang##*/}"
+      [ -d "$strings/$name" ] || cp -r "$lang" "$strings/"
+      keep="$keep $name"
+    done
+  fi
+  : >"$cl_native_dir/list.new"
+  echo "active.$cl_system" >"$cl_native_dir/active"
+  # the NES has no Japanese of its own
+  if [ "$cl_system" = "nes" ]; then
+    keep=" eur_ja"
+    if [ ! -d "$strings/eur_ja" ]; then
+      mkdir -p "$strings/eur_ja"
+      cp "$cl_assets/ja/nes.json" "$strings/eur_ja/strings.json"
+      rm -f "$mountpoint/var/copyleft/${cl_strings#"$mountpoint"/usr/share/}/eur_ja/strings.json"
+    fi
+    printf '%s\t%s\n' ja 日本語 >>"$cl_native_dir/list.new"
+  fi
+  for lang in "$from/custom/$cl_pack"/*; do
+    name="${lang##*/}"
+    case "$name" in jpn_ja | *.new) continue ;; esac
+    file="$lang/strings.$ext"
+    [ -f "$lang/name" ] || continue
+    [ -f "$file" ] || continue
+    code="$(clNativeCode "$name")"
+    keep="$keep eur_$code"
+    if [ ! -d "$strings/eur_$code" ]; then
+      mkdir -p "$strings/eur_$code"
+      cp "$file" "$strings/eur_$code/strings.$ext"
+      rm -f "$mountpoint/var/copyleft/${cl_strings#"$mountpoint"/usr/share/}/eur_$code/strings.$ext"
+    fi
+    printf '%s\t%s\n' "$code" "$(cat "$lang/name")" >>"$cl_native_dir/list.new"
+  done
+  for lang in "$strings"/eur_*; do
+    name="${lang##*/}"
+    [ -d "$stock/$name" ] && continue
+    case "$keep " in *" $name "*) ;; *) rm -rf "$lang" ;; esac
+  done
+  mv "$cl_native_dir/list.new" "$cl_native_dir/list"
+}
+
+# the patched scripts the menu bar needs on the Famicom Mini and the Shonen Jump, as "<patched> <script>" pairs
+clNativeExtras() {
+  local file sum
+  local base="${cl_strings%/strings}"
+  [ "$cl_system" = "hvc" ] || [ "$cl_system" = "shonen" ] || return 0
+  for file in helper_nodes sys_menubaru; do
+    sum="$(md5sum "${squashfs:-/var/squashfs}${base#"$mountpoint"}/scripts/$file.lua" 2>/dev/null)"
+    echo "$cl_assets/native/${sum%% *}.lua $base/scripts/$file.lua"
+  done
+}
+
+# the language code the Options Menu names its flags and previews by
+clFlagLang() {
+  case "$1" in
+  eur_swe) echo sv ;;
+  eur_nor) echo no ;;
+  eur_gr) echo el ;;
+  por_br) echo pt_br ;;
+  *) echo "${1#*_}" ;;
+  esac
+}
+
+# a language applied the classic way shows in the Russian slot, so the firmware keeps ru_EUR
+clResetRussian() {
+  local lang="$mountpoint/var/lib/clover/profiles/0/lang.txt"
+  case "$(cat "$lang" 2>/dev/null)" in ru_*) echo en_USA >"$lang" ;; esac
+}
+
+# the Options Menu follows the console language; /var is rebuilt at every boot.
+# The file only says what the console really shows on the Japanese firmwares and with the firmware menu
+clUiLang() {
+  local ui="$mountpoint/var/console_language_ui"
+  if [ -n "$cl_code" ] && [ -n "$cl_native" ]; then
+    case "$cl_code" in
+    pb) echo pt_br >"$ui" ;;
+    *) echo "$cl_code" >"$ui" ;;
+    esac
+  else
+    rm -f "$ui"
+  fi
+}
+
+# the firmwares whose own language is Japanese
+clJapanese() {
+  case "$cl_system" in shonen | hvc | shvc) return 0 ;; esac
+  return 1
+}
+
+# the Japanese firmwares already have "Revert to Japanese", and the firmware menu has its own Japanese
+clSkipCode() {
+  [ "$1" = "jpn_ja" ] || return 1
+  [ -n "$cl_native" ] && return 0
+  clJapanese
+}
+
+clBind() {
+  [ -e "$1" ] && [ -e "$2" ] && mount_bind "$1" "$2"
+}
+
+clUnbind() {
+  grep -q " $1 " /proc/mounts && umount "$1" 2>/dev/null
+}
+
+# with the firmware menu a theme's own fonts stay: only the stock ones, or mine, are replaced
+clFontReplaceable() {
+  [ -z "$cl_native" ] && return 0
+  cmp -s "$1" "$2" || cmp -s "$1" "${squashfs:-/var/squashfs}${1#"$mountpoint"}"
+}
+
+# the stock Japanese fonts lack accented glyphs and the UI dies on them (C8);
+# same targets fontFix binds, which wins for fonts it provides
+clFontMounts() {
+  local f target
+  local fonts="${cl_strings%/strings}/fonts"
+  [ "$cl_system" = "hvc" ] && fonts="$fonts/hvc"
+  [ "$cl_system" = "nes" ] && fonts="$fonts/nes"
+  # the USA/EUR firmwares name all but copyright *.font
+  for f in "$cl_assets/fonts"/*.fnt; do
+    [ "${f##*/}" = "debug.fnt" ] && [ "$cl_system" != "shonen" ] && continue
+    for target in "$fonts/${f##*/}" "$fonts/$(basename "$f" .fnt).font"; do
+      [ -f "$target" ] || continue
+      clFontReplaceable "$target" "$f" && echo "$f $target"
+      break
+    done
+  done
+}
+
+# one line per bind: "<source> <target>", from the active state
+clMounts() {
+  [ -n "$cl_native" ] || return 0
+  echo "$cl_native_script $cl_native_target"
+  clNativeExtras
+  if [ "$cl_system" = "shvc" ]; then
+    echo "$cl_assets/shvc/env_jpn.lua ${cl_strings%/strings}/scripts/env/env_jpn.lua"
+    echo "$cl_assets/shvc/defaultscene.scn ${cl_strings%/strings}/defaultscene.scn"
+  fi
+  echo "$cl_native_dir/strings $cl_strings"
+  clFontMounts
+}
+
+# languages re-downloaded while in use wait as <code>.new until nothing is bound
+clSwapStaged() {
+  local staged
+  for staged in "$cl_dir"/custom/*/*.new; do
+    [ -d "$staged" ] || continue
+    rm -rf "${staged%.new}" && mv "$staged" "${staged%.new}"
+  done
+}
+
+clMountLang() {
+  local src
+  local dst
+  [ -n "$cl_native" ] && clNativeBuild "$cl_dir"
+  clMounts | while read -r src dst; do
+    clBind "$src" "$dst"
+  done
+}
+
+clUmountLang() {
+  local src
+  local dst
+  [ -n "$cl_native" ] && clStringMounts | while read -r dst; do
+    umount "$dst"
+  done
+  clMounts | while read -r src dst; do
+    clUnbind "$dst"
+  done
+}
+
+# the strings folder and every bind inside it, innermost first
+clStringMounts() {
+  awk -v d="$cl_strings" '$2 == d || index($2, d "/") == 1 { print $2 }' /proc/mounts | sort -r
+}
+
+# copyleft copies each strings file at boot from what is bound then, and keeps the copy
+clCopyleft() {
+  local copyleft="$mountpoint/etc/preinit.d/p8026_copyleft"
+  local l
+  [ -f "$copyleft" ] || return 0
+  find "$cl_strings" -name "strings.*" | while read -r l; do
+    rm -f "$mountpoint/var/copyleft/${l#"$mountpoint"/usr/share/}"
+  done
+  source_parts "$copyleft"
+}
+
+# mount_bind replaces what a target holds, so the language goes back in boot order:
+# copyleft on its strings, fontFix (run by the caller) on its fonts
+clRebind() {
+  local dst
+  clStringMounts | while read -r dst; do
+    umount "$dst"
+  done
+  clUmountLang
+  clSwapStaged
+  clMountLang
+  clCopyleft
+}
+
+# Famicom titles in rōmaji: the desktop files go over the games folder the UI reads as an overlay,
+# which the sync of Hakchi unmounts; only the games the folder has get a title, or the UI would list the rest
+clRomajiOn() {
+  [ -f "$cl_dir/romaji.$cl_system" ]
+}
+
+clBindGames() {
+  local up="$mountpoint/var/console_language_desktop"
+  local game
+  clRomajiOn && [ -d "$cl_assets/desktop/$cl_system" ] || return 1
+  rm -rf "$up"
+  mkdir -p "$up"
+  for game in "$cl_assets/desktop/$cl_system"/*; do
+    [ -d "$1/${game##*/}" ] && cp -r "$game" "$up/"
+  done
+  [ -n "$(ls "$up")" ] || return 1
+  mountpoint -q "$2" && { umount "$2" || umount -f "$2"; }
+  mount -t overlayfs -o "lowerdir=$1,upperdir=$up" overlayfs "$2"
+}

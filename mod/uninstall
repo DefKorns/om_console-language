@@ -1,0 +1,42 @@
+#!/bin/sh
+# shellcheck disable=SC2154,SC1090,SC2034,SC3046
+#
+#  Copyright (c) 2026 DefKorns (https://defkorns.github.io/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+del() {
+  rm -rf "$@"
+}
+
+om_path="$rootfs/etc/options_menu"
+cl_path="$om_path/console_language"
+lang_cmds="$om_path/language/commands"
+pre_initd="$rootfs/etc/preinit.d"
+
+if [ -f "$cl_path/scripts/cl_functions" ]; then
+  source "$cl_path/scripts/cl_functions"
+  clInit
+  [ -z "$cl_code" ] || clResetRussian
+  clJapanese && echo ja_JPN >"$mountpoint/var/lib/clover/profiles/0/lang.txt"
+  rm -f "$mountpoint/var/console_language_ui"
+  clUmountLang
+  rm -rf "$mountpoint/var/console_language_native" "$mountpoint/var/console_language_desktop"
+fi
+
+del "$pre_initd/b8020_console_language" "$pre_initd/p8020_console_language" "$pre_initd/b8027_console_language"
+del "$lang_cmds/c0001_ConsoleLanguage" "$lang_cmds/c0001_DownloadLanguages" "$lang_cmds/c0001_Romaji" "$lang_cmds/c9010_ConsoleLanguage"
+# the separator is shared with the other language addons
+ls "$lang_cmds"/c000[1-9]_[!s]* >/dev/null 2>&1 || del "$lang_cmds/c0002_separator"
+del "$cl_path"

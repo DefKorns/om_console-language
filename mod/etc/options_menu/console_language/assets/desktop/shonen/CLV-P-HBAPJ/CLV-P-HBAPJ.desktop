@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Exec=/bin/clover-kachikachi-wr /var/squashfs/usr/share/games/CLV-P-HBAPJ/CLV-P-HBAPJ.nes  --guest-overscan-dimensions 0,0,9,3 --initial-fadein-durations 3,2 --volume 79 --enable-armet
+Path=/var/saves/CLV-P-HBAPJ
+Name=Hokuto no Ken 3: Shin Seiki Sōzō: Seiken Retsuden
+Icon=/var/squashfs/usr/share/games/CLV-P-HBAPJ/CLV-P-HBAPJ.png
+
+[X-CLOVER Game]
+Code=CLV-P-HBAPJ
+TestID=111
+ID=0
+Players=1
+Simultaneous=0
+ReleaseDate=1989-10-19
+SaveCount=3
+SortRawTitle=hokuto no ken 3: shin seiki sōzō: seiken retsuden
+SortRawPublisher=TOEI
+Copyright=Hokuto no Ken 3: Shin Seiki Sōzō: Seiken Retsuden\n©Buronson / Hara Tetsuo / NSP / Toei Animation ©Toei Animation

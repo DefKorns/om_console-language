@@ -1,0 +1,77 @@
+#!/bin/sh
+# shellcheck disable=SC2154,SC3046,SC2086
+#  Copyright (C) 2026 DefKorns (https://defkorns.github.io/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Lists the catalog languages for this firmware, one entry each
+source $mountpoint/etc/options_menu/console_language/scripts/cl_vars
+
+dl_cmds="$cl_home/download/commands"
+dl_list="$cl_home/download/catalog.$cl_pack.list"
+rm -rf "$dl_cmds"
+mkdir -p "$dl_cmds"
+
+# the catalog changes rarely: a day-old copy is used as is, and a stale one when the fetch fails
+if [ ! -s "$dl_list" ] || [ -z "$(find "$dl_list" -mmin -1440 2>/dev/null)" ]; then
+  omLoading CL_LIST_DOWNLOADING_LINE1 CL_LIST_DOWNLOADING_LINE2
+  "$om_scripts/downloader" "$dl_list.new" "$cl_url/$cl_pack.list" >/dev/null 2>&1 && mv -f "$dl_list.new" "$dl_list"
+  rm -f "$dl_list.new"
+fi
+
+if [ -s "$dl_list" ]; then
+  printf '%s\n' "COMMAND_NAME=CL_DOWNLOAD_ALL" "COMMAND_TYPE=DOWNLOAD" \
+    "COMMAND_STR=sh %script_dir%/console_language.sh installall" >"$dl_cmds/c0010_all"
+  : >"$dl_cmds/c0020_separator"
+  n=100
+  while read -r code name; do
+    [ -n "$code" ] || continue
+    clSkipCode "$code" && continue
+    cmd="$dl_cmds/c0${n}_$code"
+    printf '%s\n' \
+      "COMMAND_NAME=$name" \
+      "COMMAND_TYPE=DOWNLOAD" \
+      "COMMAND_STR=sh %script_dir%/console_language.sh install $code" >"$cmd"
+    [ -d "$cl_home/custom/$cl_pack/$code" ] && echo "CONFIRM_KEY=CL_REPLACE_CONFIRM" >>"$cmd"
+    # this is where a language is deleted; the one in use stays
+    if [ -d "$cl_home/custom/$cl_pack/$code" ]; then
+      if [ "$(clNativeCode "$code")" = "$cl_code" ]; then
+        echo "DELETE_BLOCKED_KEY=CL_DELETE_IN_USE" >>"$cmd"
+      else
+        printf '%s\n' \
+          "DELETE_STR=sh %script_dir%/console_language.sh delete $code; sh %script_dir%/om_cl_download" \
+          "DELETE_CONFIRM_KEY=CL_DELETE_CONFIRM" >>"$cmd"
+      fi
+    fi
+    lang_code="$(clFlagLang "$code")"
+    if [ -f "$cl_home/images/preview_lang_$lang_code.png" ]; then
+      echo "PREVIEW_IMAGE=/etc/options_menu/console_language/images/preview_lang_$lang_code.png" >>"$cmd"
+    elif [ -f "$cl_home/images/$code.png" ]; then
+      echo "PREVIEW_IMAGE=/etc/options_menu/console_language/images/$code.png" >>"$cmd"
+    elif [ -f "$options_menu/images/preview_lang_$lang_code.png" ]; then
+      echo "PREVIEW_IMAGE=/etc/options_menu/images/preview_lang_$lang_code.png" >>"$cmd"
+    fi
+    if [ -f "$cl_home/images/flag_${lang_code}_small.png" ]; then
+      echo "ROW_ICON=/etc/options_menu/console_language/images/flag_${lang_code}_small.png" >>"$cmd"
+    elif [ -f "$options_menu/images/flag_${lang_code}_small.png" ]; then
+      echo "ROW_ICON=/etc/options_menu/images/flag_${lang_code}_small.png" >>"$cmd"
+    fi
+    n=$((n + 1))
+  done <"$dl_list"
+else
+  printf '%s\n' "COMMAND_NAME=CL_DOWNLOAD_FAILED" "COMMAND_TYPE=INTERNAL" \
+    "COMMAND_STR=sh %script_dir%/console_language.sh nonet" >"$dl_cmds/c0100_failed"
+fi
+
+usleep 50000 && "$options_menu/options" --commandPath "$dl_cmds/" --scriptPath "$cl_home/scripts" --title "CL_DOWNLOAD" &

@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Exec=/bin/clover-kachikachi-wr /var/squashfs/usr/share/games/CLV-P-HBANJ/CLV-P-HBANJ.nes  --guest-overscan-dimensions 0,0,9,8 --initial-fadein-durations 3,2 --volume 81 --enable-armet
+Path=/var/saves/CLV-P-HBANJ
+Name=Captain Tsubasa Vol. II: Super Striker
+Icon=/var/squashfs/usr/share/games/CLV-P-HBANJ/CLV-P-HBANJ.png
+
+[X-CLOVER Game]
+Code=CLV-P-HBANJ
+TestID=109
+ID=0
+Players=1
+Simultaneous=0
+ReleaseDate=1990-07-20
+SaveCount=0
+SortRawTitle=captain tsubasa vol. ii: super striker
+SortRawPublisher=TECMO
+Copyright=Captain Tsubasa Vol. II: Super Striker ©Takahashi Yōichi / Shueisha ©KOEI TECMO GAMES

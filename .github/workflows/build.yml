@@ -1,0 +1,19 @@
+name: Build
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+
+jobs:
+  hmod:
+    # Keep in sync with the vendor/hmod-build submodule tag.
+    uses: DefKorns/hmod-build/.github/workflows/hmod.yml@v1.7.1
+    with:
+      release-name: Console Language
+      make: all
+      docker: false
+    secrets: inherit
+    permissions:
+      contents: write

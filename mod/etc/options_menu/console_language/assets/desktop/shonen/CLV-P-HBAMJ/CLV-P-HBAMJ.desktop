@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Exec=/bin/clover-kachikachi-wr /var/squashfs/usr/share/games/CLV-P-HBAMJ/CLV-P-HBAMJ.nes  --guest-overscan-dimensions 0,0,9,3 --initial-fadein-durations 3,2 --volume 81 --enable-armet
+Path=/var/saves/CLV-P-HBAMJ
+Name=Captain Tsubasa
+Icon=/var/squashfs/usr/share/games/CLV-P-HBAMJ/CLV-P-HBAMJ.png
+
+[X-CLOVER Game]
+Code=CLV-P-HBAMJ
+TestID=108
+ID=0
+Players=1
+Simultaneous=0
+ReleaseDate=1988-04-28
+SaveCount=0
+SortRawTitle=captain tsubasa
+SortRawPublisher=TECMO
+Copyright=Captain Tsubasa ©Takahashi Yōichi / Shueisha ©KOEI TECMO GAMES

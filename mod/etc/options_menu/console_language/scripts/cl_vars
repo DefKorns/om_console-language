@@ -1,0 +1,25 @@
+#!/bin/sh
+# shellcheck disable=SC2034,SC2154,SC3046,SC2086,SC3043
+#  Copyright (C) 2026 DefKorns (https://defkorns.github.io/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# shellcheck source=/dev/null
+source $mountpoint/etc/options_menu/scripts/om_functions
+source $mountpoint/etc/options_menu/console_language/scripts/cl_functions
+clInit
+
+# writes go through "/" ($cl_home); the preinit reads the same files from $rootfs ($cl_dir)
+cl_home="$options_menu/console_language"
+cl_url="https://github.com/DefKorns/om_console-language-packs/releases/download/languages-v1"
