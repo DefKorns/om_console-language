@@ -132,7 +132,7 @@ clNativeBuild() {
     [ -f "$file" ] || continue
     code="$(clNativeCode "$name")"
     keep="$keep eur_$code"
-    if [ ! -d "$strings/eur_$code" ]; then
+    if ! cmp -s "$file" "$strings/eur_$code/strings.$ext"; then
       mkdir -p "$strings/eur_$code"
       cp "$file" "$strings/eur_$code/strings.$ext"
       rm -f "$mountpoint/var/copyleft/${cl_strings#"$mountpoint"/usr/share/}/eur_$code/strings.$ext"
