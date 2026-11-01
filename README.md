@@ -15,11 +15,11 @@ The game titles on the home screen use the extended `title.fnt` of **Font Remoun
 
 Each firmware keeps its own language, so multi-booting needs no `.hsqs`: hakchi switches firmware and the choice follows it.
 
-Open **Console Language** in the Options Menu, pick a language and the menu reloads with it applied, with no reboot. *Download more languages* shows up when the console is online.
+Pick the language on the console's own Languages screen, where the downloaded ones are listed after the eight it ships with; the list scrolls, and the choice is kept across reboots. The Japanese consoles get a language button in their menu bar.
 
-On the USA and EUR SNES the languages you download are listed in the console's own Languages screen instead, after the eight it ships with; the list scrolls, and the choice is kept across reboots. The Options Menu then only downloads and deletes them. A firmware whose language script this release doesn't know falls back to choosing from the Options Menu.
+**Console Language** in the Options Menu downloads more languages when the console is online, and deletes them. A firmware whose language script this release doesn't know gets no language downloads.
 
-On the Japanese systems, **Rōmaji titles** shows the games' names in rōmaji instead of kana and kanji. It is independent of the applied language and, like the languages, reloads the menu instead of rebooting.
+On the Japanese systems, **Rōmaji titles** shows the games' names in rōmaji instead of kana and kanji. It is independent of the applied language and reloads the menu instead of rebooting.
 
 ## Building
 
