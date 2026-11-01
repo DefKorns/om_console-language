@@ -1,0 +1,100 @@
+#!/bin/sh
+# shellcheck disable=SC2154
+#
+#  Copyright (c) 2026 DefKorns (https://defkorns.github.io/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+del() {
+  rm -rf "$@"
+}
+
+om_path="$rootfs/etc/options_menu"
+cl_path="$om_path/console_language"
+cl_cmds="$cl_path/commands"
+lang_cmds="$om_path/language/commands"
+pre_initd="$rootfs/etc/preinit.d"
+p_file="$pre_initd/p8020_console_language"
+
+# leftovers from the CompCom Options Menu releases (RC4 and b135/b136)
+del "$pre_initd/p8020_shonen_hack" "$pre_initd/p8024_zlanguage"
+del "$om_path/commands/c0090_Shonen" "$om_path/commands/c0090_Languages" "$om_path/commands/c0079_ConsoleLanguage"
+del "$om_path/scripts/om_languagemod" "$om_path/scripts/om_languagemod.txt"
+del "$om_path/shonen" "$om_path/languages" "$om_path/localization"
+for bin in nes snes; do
+  if [ -f "$rootfs/${bin}_backup" ]; then
+    cp -f "$rootfs/${bin}_backup" "$rootfs/bin/$bin"
+    del "$rootfs/${bin}_backup"
+  fi
+done
+
+# om-language-hack state, copied before its uninstall wipes the folder
+cl_old="$om_path/language_hack"
+if [ -d "$cl_old" ]; then
+  for f in "$cl_old"/active.* "$cl_old"/custom "$cl_old"/images; do
+    [ -e "$f" ] && cp -rf "$f" "$cl_path/"
+  done
+fi
+for cl_unfile in "$installpath/hmod/uninstall-om-language-hack"* \
+                 "$installpath/hmod/uninstall-OM_Shonen_Language-Hack"*; do
+  [ -f "$cl_unfile" ] && pack_uninstall "${cl_unfile##*/uninstall-}"
+done
+
+# earlier boot script names; the current one is copied below only while a language or rōmaji is on
+del "$pre_initd/b8020_console_language" "$p_file"
+
+# the submenu of earlier versions
+del "$cl_cmds"
+# earlier entries of the Language screen; its separator is shared with the other language addons
+del "$lang_cmds/c9010_ConsoleLanguage" "$lang_cmds/c0001_ConsoleLanguage"
+ls "$lang_cmds"/c90[1-9]* >/dev/null 2>&1 || del "$lang_cmds/c9000_separator"
+
+# the title font comes from Font Remount now
+del "$cl_path/assets/fonts/title.fnt" "$cl_path/assets/desktop"/*/title.fnt "$cl_path/gamefont"
+
+# custom/<code> to custom/<system>/<code>: the files' layout tells which firmware downloaded it
+cl_custom="$cl_path/custom"
+for cl_lang in "$cl_custom"/*; do
+  cl_code="${cl_lang##*/}"
+  case "$cl_code" in nes | shonen | snes) continue ;; esac
+  if [ -f "$cl_lang/strings.lng" ]; then
+    cl_sys=shonen
+  elif ls "$cl_lang"/strings/*/strings.json >/dev/null 2>&1; then
+    cl_sys=nes
+  elif ls "$cl_lang"/strings/*/strings.lng >/dev/null 2>&1; then
+    cl_sys=snes
+  else
+    continue
+  fi
+  [ -e "$cl_custom/$cl_sys/$cl_code" ] && continue
+  mkdir -p "$cl_custom/$cl_sys"
+  mv "$cl_lang" "$cl_custom/$cl_sys/$cl_code"
+  case "$cl_code" in
+  as_id) cl_name="Bahasa Indonesia" ;;
+  cst_cw) cl_name="Spurdo" ;;
+  eur_gr) cl_name="Ellinika" ;;
+  eur_nor) cl_name="Norsk" ;;
+  eur_swe) cl_name="Svenska" ;;
+  por_br) cl_name="Português (Brasil)" ;;
+  *) cl_name="$cl_code" ;;
+  esac
+  echo "$cl_name" >"$cl_custom/$cl_sys/$cl_code/name"
+done
+
+transfer_default
+
+cp -f "$cl_path/preinit/p8020_console_language" "$p_file"
+cp -f "$cl_path/preinit/b8027_console_language" "$pre_initd/b8027_console_language"
+
+return 1

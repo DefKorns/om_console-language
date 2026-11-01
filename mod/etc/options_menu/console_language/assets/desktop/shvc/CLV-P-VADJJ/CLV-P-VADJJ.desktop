@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Application
+Exec=/bin/clover-canoe-shvc-wr -rom /var/squashfs/usr/share/games/CLV-P-VADJJ/CLV-P-VADJJ.sfrom --volume 70 -rollback-snapshot-period 600
+Path=/var/lib/clover/profiles/0/CLV-P-VADJJ
+Name=Sūpā Mario: Yosshī Airando
+Icon=/var/squashfs/usr/share/games/CLV-P-VADJJ/CLV-P-VADJJ.png
+
+[X-CLOVER Game]
+Code=CLV-P-VADJJ
+TestID=18
+Status=Duplicate-5
+ID=0
+Players=1
+Simultaneous=0
+ReleaseDate=1995-08-05
+SaveCount=3
+SortRawTitle=sūpā mario: yosshī airando
+SortRawPublisher=NINTENDO
+Copyright=Sūpā Mario: Yosshī Airando ©1995 Nintendo
+MyPlayDemoTime=45

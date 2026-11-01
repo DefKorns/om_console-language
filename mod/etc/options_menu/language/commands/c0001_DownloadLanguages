@@ -1,0 +1,7 @@
+COMMAND_NAME=CL_DOWNLOAD
+COMMAND_TYPE=EXTERNAL
+RESTART_UI=FALSE
+SUBMENU=TRUE
+COMMAND_STR=sh %options_path%/console_language/scripts/om_cl_download
+PREVIEW_IMAGE=/etc/options_menu/console_language/images/preview_console_language.png
+ENABLE_IF=ip route 2>/dev/null | grep -q '^default'

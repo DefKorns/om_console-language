@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Application
+Exec=/bin/clover-canoe-shvc-wr -rom /var/squashfs/usr/share/games/CLV-P-VABRJ/CLV-P-VABRJ.sfrom --volume 75 -rollback-snapshot-period 3600
+Path=/var/lib/clover/profiles/0/CLV-P-VABRJ
+Name=Seiken Densetsu 2
+Icon=/var/squashfs/usr/share/games/CLV-P-VABRJ/CLV-P-VABRJ.png
+
+[X-CLOVER Game]
+Code=CLV-P-VABRJ
+TestID=12
+Status=Completing-3
+ID=0
+Players=2
+Simultaneous=1
+ReleaseDate=1993-08-06
+SaveCount=3
+SortRawTitle=seiken densetsu 2
+SortRawPublisher=SQUARESOFT
+Copyright=Seiken Densetsu 2 ©1993 SQUARE ENIX CO.,LTD. All Rights Reserved.
+MyPlayDemoTime=45

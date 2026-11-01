@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Exec=/bin/clover-kachikachi-wr /var/squashfs/usr/share/games/nes/kachikachi/CLV-P-HABCJ/CLV-P-HABCJ.nes  --guest-overscan-dimensions 0,0,9,3 --initial-fadein-durations 3,2 --volume 67 --enable-armet
+Path=/var/lib/clover/profiles/0/CLV-P-HABCJ
+Name=Makaimura®
+Icon=/var/squashfs/usr/share/games/nes/kachikachi/CLV-P-HABCJ/CLV-P-HABCJ.png
+
+[X-CLOVER Game]
+Code=CLV-P-HABCJ
+TestID=21
+ID=0
+Players=2
+Simultaneous=0
+ReleaseDate=1986-06-13
+SaveCount=0
+SortRawTitle=makaimura®
+SortRawPublisher=CAPCOM
+Copyright=Makaimura® ©CAPCOM CO., LTD. 1986, 2016 ALL RIGHTS RESERVED.
