@@ -70,7 +70,7 @@ clRomajiState() {
 # cancelling mid-download leaves nothing behind
 clAbort() {
   trap - TERM INT HUP
-  rm -rf /tmp/cl_*.tar.gz /tmp/cl_stage /tmp/cl_pending
+  rm -rf /tmp/cl_*.tar.gz /tmp/cl_pending "$cl_home/stage"
   exit 1
 }
 
@@ -99,24 +99,28 @@ clDelete() {
   clAfterChange
 }
 
+# a language is unpacked in a stage next to custom/ and moved in whole, so a half-unpacked one is never taken for installed;
 # the active language's files are in use: it goes to <code>.new, swapped in at boot
 clInstall() {
   local dest="$cl_home/custom/$cl_pack/$1"
-  local stage="/tmp/cl_stage"
+  local stage="$cl_home/stage"
   trap clAbort TERM INT HUP
   translate CL_DOWNLOADING
+  rm -rf "$stage" && mkdir -p "$stage"
+  clFetch "$cl_pack-$1.tar.gz" "$stage" || {
+    rm -rf "$stage"
+    exit 1
+  }
+  mkdir -p "$cl_home/custom/$cl_pack"
   if [ "$(clNativeCode "$1")" = "$cl_code" ]; then
-    rm -rf "$stage" && mkdir -p "$stage"
-    clFetch "$cl_pack-$1.tar.gz" "$stage" || {
-      rm -rf "$stage"
-      exit 1
-    }
     rm -rf "$dest.new"
     mv "$stage/custom/$cl_pack/$1" "$dest.new"
     rm -rf "$stage"
     translate CL_REPLACE_AT_REBOOT
   else
-    clFetch "$cl_pack-$1.tar.gz" "$cl_home" || exit 1
+    rm -rf "$dest"
+    mv "$stage/custom/$cl_pack/$1" "$dest"
+    rm -rf "$stage"
     clAfterChange
     translate CL_DOWNLOADED
   fi
@@ -126,10 +130,18 @@ clInstall() {
 clInstalled() {
   local code="${2#/tmp/cl_"$cl_pack"-}"
   local rc="$1"
+  local stage
   code="${code%.tar.gz}"
+  stage="$cl_home/stage/$code"
   if [ "$rc" = 0 ]; then
-    omUnpack "$2" "$cl_home"
+    rm -rf "$stage" && mkdir -p "$stage"
+    omUnpack "$2" "$stage"
     rc=$?
+    if [ "$rc" = 0 ]; then
+      mkdir -p "$cl_home/custom/$cl_pack"
+      mv "$stage/custom/$cl_pack/$code" "$cl_home/custom/$cl_pack/$code" || rc=1
+    fi
+    rm -rf "$stage"
   fi
   case "$rc" in
   0) ;;
@@ -165,6 +177,7 @@ clInstallAll() {
   omDownloadAll "$pending" clInstalled 2
   rc=$?
   rm -f "$pending"
+  rm -rf "$cl_home/stage"
   clAfterChange
   if [ -n "$cl_failed" ]; then
     translate CL_FAILED
